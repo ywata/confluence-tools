@@ -181,11 +181,10 @@ if __name__ == '__main__':
 
             new_title = now.strftime(args.title_format)
             (status_code, res5, dummy_title) = copy_page(url, src_page, to_page, new_title)
-            print(res5)
             if status_code == 202:
                 task_id = res5['id']
+                # This might be necessary in some situation.
                 #(sc, r6) = get_long_running_task_by_id(url, auth, task_id)
-                #print(sc, r6)
             else:
                 sys.exit('copy failed')
 
