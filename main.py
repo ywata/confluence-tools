@@ -3,7 +3,7 @@ import requests
 from requests.auth import HTTPBasicAuth
 import json
 import datetime
-
+from xml.etree import ElementTree as ET
 import sys
 
 import yaml
