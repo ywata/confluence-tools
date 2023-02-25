@@ -111,11 +111,9 @@ def compare(ltag, rtag) -> Ord:
 def grouping(lst):
     if len(lst) == 0:
         return []
-    # Ugly.
-    lst.reverse()
-    curr = lst.pop()  # Current group leader
-    lst.reverse()
-    rest = lst
+    ls = copy.deepcopy(lst)
+    curr = ls[0]
+    rest = ls[1:]
     res = []
     tmp = [curr]
     for elem in rest:

@@ -65,10 +65,8 @@ def find_page_by_path(url, top_pages, page_path):
     assert top_pages != []
     components = page_path.split('/')
     assert components != []
-    components.reverse()
-    curr_comp = components.pop()
-    components.reverse()
-    rest = components
+    curr_comp = components[0] # this should be OK because of it's not empty list.
+    rest = components[1:]
 
     for page in top_pages:
         if page['title'] == curr_comp:
