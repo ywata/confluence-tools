@@ -152,14 +152,6 @@ def update_page(url, auth, page_id, transform, new_title):
     return response2
 
 
-def flatten(etree):
-    lst = []
-    for e in etree:
-        lst.append(e)
-    return lst
-
-
-
 # remove first h? tag group
 # duplicate second h? group
 # Keep non h? group as it is.
