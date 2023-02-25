@@ -8,6 +8,7 @@ import sys
 from typing import Optional
 import yaml
 import time
+import urllib
 
 from confluence.content import get_tag_category, Independent, DependOn, Subordinate, grouping, update_tree, \
     create_fake_root, create_body
@@ -106,6 +107,12 @@ def get_page_by_id(url, auth, page_id, repeat = 1)-> Optional[tuple]:
             time.sleep(1000)
     return None
 
+def get_page_by_title(url, auth, space, title):
+    space_ = urllib.parse.quote(space)
+    title_ = urllib.parse.quote(title)
+    get_url = f"{url}/wiki/rest/api/content?spaceKey={space_}&title={title_}"
+    response = get(get_url, auth)
+    return (response.status_code, json.loads(response.text))
 
 def update_page(url, auth, page_id, transform, new_title)->(int, dict):
     (status_code, resp) = get_page_by_id(url, auth, page_id)
@@ -167,10 +174,12 @@ if __name__ == '__main__':
             print(res5)
             if status_code == 202:
                 task_id = res5['id']
-                (sc, r6) = get_long_running_task_by_id(url, auth, task_id)
-                print(sc, r6)
+                #(sc, r6) = get_long_running_task_by_id(url, auth, task_id)
+                #print(sc, r6)
             else:
-                print(res5)
+                sys.exit('copy failed')
+            (sc7, r7) = get_page_by_title(url, auth, space_key, "copy 2023-02-23-xyz")
+            print(sc7, r7)
 
         except Exception as ex:
             print(ex)
