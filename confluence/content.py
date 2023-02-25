@@ -45,7 +45,7 @@ def get_tag_category(curr_tag) -> TagCategory:
     return Subordinate()
 
 
-def create_fake_root(value, dic):
+def create_fake_root(value, dic) -> ET.Element:
     xmlns = ""
     for ns in dic.keys():
         ET.register_namespace(ns, dic[ns])
@@ -61,7 +61,7 @@ def create_fake_root(value, dic):
     return root
 
 
-def create_body(body, root, dic):
+def create_body(body, root, dic) -> dict:
     val = ET.tostring(root).decode()
 
     for ns in dic.keys():
@@ -108,7 +108,7 @@ def compare(ltag, rtag) -> Ord:
             return Ord.EQ
 
 
-def grouping(lst):
+def grouping(lst) -> list[dict]:
     if len(lst) == 0:
         return []
     ls = copy.deepcopy(lst)
@@ -132,7 +132,7 @@ def grouping(lst):
 # remove first h? tag group
 # duplicate second h? group
 # Keep non h? group as it is.
-def daily_job(lss):
+def daily_job(lss) -> list[dict]:
     res = list()
     count = 0
     previous_text = ""
@@ -160,7 +160,7 @@ def daily_job(lss):
     return res
 
 
-def update_tree(etree):
+def update_tree(etree) -> ET.Element:
     root = ET.Element("root")
     lst = []
     for e in etree:

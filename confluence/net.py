@@ -3,7 +3,7 @@ import urllib
 import requests
 
 
-def merge_results(res):
+def merge_results(res) -> dict:
     assert res != []
     res.reverse()
     ret = res.pop()
@@ -14,7 +14,7 @@ def merge_results(res):
         ret['limit'] += r['size']
     return ret
 
-def get(url, auth):
+def get(url, auth) -> (int, dict):
     headers = {
         "Accept": "application/json"
     }
@@ -51,7 +51,7 @@ def multi_get(url, auth, limit)->(int, dict):
     return (200, merge_results(res))
 
 
-def post(url, auth, payload):
+def post(url, auth, payload) -> (int, dict):
     post_headers = {
         "Accept": "application/json",
         "Content-Type": "application/json"
@@ -69,7 +69,7 @@ def post(url, auth, payload):
         return response
 
 
-def put(url, auth, payload):
+def put(url, auth, payload) -> (int, dict):
     post_headers = {
         "Accept": "application/json",
         "Content-Type": "application/json"
