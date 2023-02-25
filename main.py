@@ -31,6 +31,11 @@ def parse_args():
     update_page_parser = cmd_parser.add_parser('update-page', help='update page ')
     update_page_parser.add_argument('--page-id', help='page-id')
 
+    new_month_parser = cmd_parser.add_parser('new-month', help='prepare for new month')
+    new_month_parser.add_argument('--space', help='space name', required=True)
+    new_month_parser.add_argument('--from', dest='frm', help='page to be copied from', required=True)
+    new_month_parser.add_argument('--title-format', help='page title', required=True)
+
     args = top_parser.parse_args()
 
     with open(args.yaml, "r") as f:
@@ -257,8 +262,6 @@ if __name__ == '__main__':
                     copied_page_id = p['id']
                     logging.info(f"update page as {new_title}")
                     resp = update_page(url, auth, copied_page_id, update_tree, new_title)
-
-
         except Exception as ex:
             logging.error(ex)
             sys.exit(1)
@@ -268,6 +271,8 @@ if __name__ == '__main__':
         except Exception as ex:
             logging.error(f"{ex}")
             sys.exit(1)
+    elif args.command == 'new-month':
+        sys.exit('not implemented yet')
     else:
         print(f"{args.command} unhandled")
         logging.error(f"{args.command} not handled")
