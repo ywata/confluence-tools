@@ -9,6 +9,7 @@ from typing import Optional
 import yaml
 import time
 import urllib
+import logging
 
 from confluence.content import get_tag_category, Independent, DependOn, Subordinate, grouping, update_tree, \
     create_fake_root, create_body
@@ -28,8 +29,6 @@ def parse_args():
     update_page_parser = cmd_parser.add_parser('update-page', help='update page ')
     update_page_parser.add_argument('--page-id', help='page-id')
 
-    test_ns_parser = cmd_parser.add_parser('test-ns', help='update page ')
-    test_ns_parser.add_argument('--page-id', help='page-id')
     args = top_parser.parse_args()
 
     with open(args.yaml, "r") as f:
@@ -206,34 +205,6 @@ if __name__ == '__main__':
         except Exception as ex:
             print(ex)
             sys.exit('probably parse error')
-    elif args.command == 'test-ns':
-        page_id = args.page_id
-        try:
-            get_page_url = f"{url}/wiki/rest/api/content/{page_id}?expand=body.storage,version.number"
-            get_headers = {
-                "Accept": "application/json"
-            }
-            response = requests.request(
-                "GET",
-                get_page_url,
-                headers=get_headers,
-                auth=auth
-            )
-            if response.status_code != 200:
-                sys.exit('error response')
-            resp = json.loads(response.text)
-            xml = f"""
-            <xml
-            xmlns:ac="http://example.com/ac"
-            >
-            {resp['body']['storage']['value']}
-            </xml>
-            """
-            ET.register_namespace("ac", "http://example.com/ac")
-            et = ET.fromstring(xml)
-
-            # ET.indent(et, space=" ", level=1)
-            ()
-        except Exception as ex:
-            print(ex)
-            sys.exit('got exception')
+    else:
+        print(f"{args.command} unhandled")
+        sys.exit(1)
