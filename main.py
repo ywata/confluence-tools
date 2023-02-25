@@ -43,6 +43,7 @@ def parse_args():
 
 def copy_page(url, src_page, to_page, new_title) -> (int, dict):
     copy_page_url = f"{url}/wiki/rest/api/content/{src_page['id']}/pagehierarchy/copy"
+    prefix = "copy-"
     payload = json.dumps({
         "copyAttachments": True,
         "copyPermissions": True,
@@ -52,14 +53,14 @@ def copy_page(url, src_page, to_page, new_title) -> (int, dict):
         "copyDescendants": True,
         "destinationPageId": f"{to_page['id']}",
         "titleOptions": {
-            "prefix": "copy ",
+            "prefix": prefix,
             "replace": f"{new_title}",
             "search": ""
         }
     })
 
     res = post(copy_page_url, auth, payload)
-    return (res.status_code, json.loads(res.text))
+    return (res.status_code, json.loads(res.text), prefix+src_page['title'])
 
 
 def find_page_by_path(url, top_pages, page_path)->Optional[dict]:
@@ -179,7 +180,7 @@ if __name__ == '__main__':
                 sys.exit(f'pagent page not found')
 
             new_title = now.strftime(args.title_format)
-            (status_code, res5) = copy_page(url, src_page, to_page, new_title)
+            (status_code, res5, dummy_title) = copy_page(url, src_page, to_page, new_title)
             print(res5)
             if status_code == 202:
                 task_id = res5['id']
@@ -187,16 +188,15 @@ if __name__ == '__main__':
                 #print(sc, r6)
             else:
                 sys.exit('copy failed')
-            new_title = "copy 2023-02-23-xyz"
-            (sc7, r7) = get_page_by_title(url, auth, space_key, new_title)
+
+            (sc7, r7) = get_page_by_title(url, auth, space_key, dummy_title)
             if sc7 != 200:
                 print(sc7, r7)
                 sys.exit('copied page not found')
             for p in r7['results']:
-                if p['title']== new_title:
+                if p['title']== dummy_title:
                     copied_page_id = p['id']
-                    resp = update_page(url, auth, copied_page_id, update_tree, "2023-02-04-abc")
-
+                    resp = update_page(url, auth, copied_page_id, update_tree, new_title)
 
 
         except Exception as ex:
