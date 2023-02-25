@@ -77,39 +77,58 @@ def copy_page(url, src_page, to_page, new_title) -> (int, dict):
     res = post(copy_page_url, auth, payload)
     return (res.status_code, json.loads(res.text), prefix+src_page['title'])
 
+# As newer date should get higher priority, the function
+# rturns matched datetime. If title and fmt is same,
+# it will get maximum priority.
 def interpret_as_datetime(title, fmt):
+
     if title == fmt:
-        return title
+        # Exact same title gets maximum priority.
+        return (title, datetime.datetime.max)
     else:
         try:
             dt = datetime.datetime.strptime(title, fmt)
-            return title
+            return (title, dt)
         except ValueError as ex:
-            return fmt
+            # error case is the least priority
+            return (fmt, datetime.datetime.min)
 
-def find_page_by_path(url, top_pages, page_path)->Optional[dict]:
-    assert top_pages != []
-    components = page_path.split('/')
-    assert components != []
-    curr_comp = components[0] # this should be OK because of it's not empty list.
+def get_children(url, auth, page_id):
+    # https: // howtoapi.atlassian.net / wiki / rest / api / content / 98400 / child / page
+    page_children_url = f"{url}/wiki/rest/api/content/{page_id}/child/page?"
+    (sc, res) = multi_get(page_children_url, auth, 2)
+    if sc == 200:
+        return res['results']
+    else:
+        logging.error("get_children failed")
+        return []
+
+def find_page_by_path(url, auth, top_pages, components)->Optional[dict]:
+    if components == []:
+        return None
+    curr_comp = components[0]
     rest = components[1:]
-
+    curr_page = None
+    curr_dt = datetime.datetime.min #initial value is the minimum
+    # find a top level page with the newest datetime.
     for page in top_pages:
         title = page['title']
-        interpreted_comp = interpret_as_datetime(title, curr_comp)
-        if title == interpreted_comp:
-            if rest == []:
-                return page
-            # if we have more components, decent one level more.
-            page_id = page['id']
-            # https: // howtoapi.atlassian.net / wiki / rest / api / content / 98400 / child / page
-            page_children_url = f"{url}/wiki/rest/api/content/{page_id}/child/page?"
-            (sc, res) = multi_get(page_children_url, auth, 2)
-            if sc == 200:
-                return find_page_by_path(url, res['results'], "/".join(rest))
-            else:
-                return None
-    return None
+        (interpreted_comp, dt) = interpret_as_datetime(title, curr_comp)
+        if title == interpreted_comp and curr_dt < dt:
+            # Newesst date gets higher priority
+            curr_dt = dt
+            curr_page = page
+
+    # There is no matched page against curr_comp, you don't have to
+    # recursively call this function again.
+    if curr_page is None:
+        return None
+    # We are end of the component
+    if  rest == []:
+        return curr_page
+
+    children = get_children(url, auth, curr_page['id'])
+    return find_page_by_path(url, auth, children, rest)
 
 def get_page_by_id(url, auth, page_id, repeat = 1)-> Optional[tuple]:
     get_page_url = f"{url}/wiki/rest/api/content/{page_id}?expand=body.storage,version.number"
@@ -204,13 +223,13 @@ if __name__ == '__main__':
             top_pages = res3['results']
 
             logging.info(f"get page down through {args.frm}")
-            src_page = find_page_by_path(url, top_pages, args.frm)
+            src_page = find_page_by_path(url, auth, top_pages, args.frm.split('/'))
             if src_page is None:
                 logging.error(f"src page not found:{args.frm}")
                 sys.exit(1)
 
             logging.info(f"get page to be copied in")
-            to_page = find_page_by_path(url, top_pages, args.into)
+            to_page = find_page_by_path(url, auth, top_pages, args.into.split('/'))
             if to_page is None:
                 logging.error(f"destination parent not found:{args.into}")
                 sys.exit(1)
