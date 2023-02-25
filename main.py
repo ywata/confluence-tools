@@ -39,9 +39,8 @@ def parse_args():
 
 
 
-def copy_page(url, src_page, to_page, title_format):
+def copy_page(url, src_page, to_page, new_title):
     copy_page_url = f"{url}/wiki/rest/api/content/{src_page['id']}/pagehierarchy/copy"
-
     payload = json.dumps({
         "copyAttachments": True,
         "copyPermissions": True,
@@ -52,7 +51,7 @@ def copy_page(url, src_page, to_page, title_format):
         "destinationPageId": f"{to_page['id']}",
         "titleOptions": {
             "prefix": "copy ",
-            "replace": f"{now.strftime(title_format)}",
+            "replace": f"{new_title}",
             "search": ""
         }
     })
@@ -153,7 +152,8 @@ if __name__ == '__main__':
             src_page = find_page_by_path(url, res3['results'], args.frm)
             to_page = find_page_by_path(url, res3['results'], args.into)
 
-            res5 = copy_page(url, src_page, to_page, args.title_format)
+            new_title = now.strftime(args.title_format)
+            res5 = copy_page(url, src_page, to_page, new_title)
             print(res5)
         except Exception as ex:
             print(ex)
