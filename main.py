@@ -194,12 +194,14 @@ if __name__ == '__main__':
             logging.info(f"get page down through {args.frm}")
             src_page = find_page_by_path(url, top_pages, args.frm)
             if src_page is None:
-                sys.exit(f'src page not found')
+                logging.error(f"src page not found:{args.frm}")
+                sys.exit(1)
 
             logging.info(f"get page to be copied in")
             to_page = find_page_by_path(url, top_pages, args.into)
             if to_page is None:
-                sys.exit(f'pagent page not found')
+                logging.error(f"destination parent not found:{args.into}")
+                sys.exit(1)
 
             new_title = now.strftime(args.title_format)
             logging.info(f"copy page to {new_title}")
@@ -209,6 +211,7 @@ if __name__ == '__main__':
                 # This might be necessary in some situation.
                 #(sc, r6) = get_long_running_task_by_id(url, auth, task_id)
             else:
+                logging.error("copy page failed")
                 sys.exit('copy failed')
             # TODO: after copy_page() is succeeded, any error can cause to\
             #  leave a temporary file named with dummy_title. It has to be deleted.
