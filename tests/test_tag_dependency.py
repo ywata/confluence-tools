@@ -1,6 +1,6 @@
 import unittest
 from xml.etree import ElementTree as ET
-from confluence import grouping, compare, Ord
+from confluence.content import grouping, compare, Ord
 
 def test_no_element():
     res = grouping([])
