@@ -178,8 +178,6 @@ if __name__ == '__main__':
     url = args.url
     email = args.email
     token = args.token
-    contet_url = f"{url}/wiki/rest/api/content?"
-    space_url = f"{url}/wiki/rest/api/space?"
     auth = HTTPBasicAuth(email, token)
     now = datetime.datetime.now()
 
@@ -187,6 +185,7 @@ if __name__ == '__main__':
         try:
             space_name = args.space
             logging.info("get space name")
+            space_url = f"{url}/wiki/rest/api/space?"
             (sc, res) = multi_get(space_url, auth, 2)
             if sc != 200:
                 logging.error(f"{space_url} error")
