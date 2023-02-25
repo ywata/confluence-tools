@@ -189,10 +189,12 @@ if __name__ == '__main__':
             logging.info("get space name")
             (sc, res) = multi_get(space_url, auth, 2)
             if sc != 200:
-                sys.exit(f'{space_url} error')
+                logging.error(f"{space_url} error")
+                sys.exit(1)
             res2 = list(filter(lambda dic: dic['name'] == space_name, res['results']))
             if len(res2) != 1:
-                sys.exit(f"multiple {space_name} found")
+                logging.error(f"multiple {space_name} found")
+                sys.exit(1)
 
             space_key = res2[0]['key']
             space_root_pages_url = f"{url}/wiki/rest/api/space/{space_key}/content/page?depth=root&expand=children.page.page"
@@ -223,14 +225,15 @@ if __name__ == '__main__':
                 #(sc, r6) = get_long_running_task_by_id(url, auth, task_id)
             else:
                 logging.error("copy page failed")
-                sys.exit('copy failed')
+                sys.exit(1)
             # TODO: after copy_page() is succeeded, any error can cause to\
             #  leave a temporary file named with dummy_title. It has to be deleted.
             logging.info(f"get id of  {dummy_title}")
             (sc7, r7) = get_page_by_title(url, auth, space_key, dummy_title)
             if sc7 != 200:
                 print(sc7, r7)
-                sys.exit('copied page not found')
+                logging.error('copied page not found')
+                sys.exit(1)
             for p in r7['results']:
                 if p['title']== dummy_title:
                     copied_page_id = p['id']
@@ -239,13 +242,15 @@ if __name__ == '__main__':
 
 
         except Exception as ex:
-            print(ex)
+            logging.error(ex)
+            sys.exit(1)
     elif args.command == 'update-page':
         try:
             resp = update_page(url, auth, 98793, update_tree, "2023-02-24-xyz")
         except Exception as ex:
-            print(ex)
-            sys.exit('probably parse error')
+            logging.error(f"{ex}")
+            sys.exit(1)
     else:
         print(f"{args.command} unhandled")
+        logging.error(f"{args.command} not handled")
         sys.exit(1)
