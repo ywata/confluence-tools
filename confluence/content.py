@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
+from xml.etree import ElementTree as ET
+import copy
 
 
 # Independent tag is always the highest priority.
@@ -41,6 +43,37 @@ def get_tag_category(curr_tag) -> TagCategory:
         if curr_tag == t:
             return tg
     return Subordinate()
+
+
+def create_fake_root(value, dic):
+    xmlns = ""
+    for ns in dic.keys():
+        ET.register_namespace(ns, dic[ns])
+        xmlns += f'''
+        xmlns:{ns}="{dic[ns]}"
+        '''
+    fake_value = f"""
+    <root {xmlns}>
+    {value}
+    </root>"""
+
+    root = ET.fromstring(fake_value)
+    return root
+
+
+def create_body(body, root, dic):
+    val = ET.tostring(root).decode()
+
+    for ns in dic.keys():
+        xmlns = f'xmlns:{ns}={dic[ns]}"'
+        val = val.replace(xmlns, "")
+    updated_body = {
+        "storage": {
+            "value": val,
+            "representation": body['storage']['representation']
+        }
+    }
+    return updated_body
 
 
 # LT : left < right
@@ -96,3 +129,46 @@ def grouping(lst):
                 tmp.append(elem)
     res.append(tmp)
     return res
+
+
+# remove first h? tag group
+# duplicate second h? group
+# Keep non h? group as it is.
+def daily_job(lss):
+    res = list()
+    count = 0
+    previous_text = ""
+    for ls in lss:
+        # As the construction assures that at least one element exists in ls.
+        assert ls != []
+        fst = ls[0]
+        tag_category = get_tag_category(fst.tag)
+        match tag_category:
+            case Independent() | DependOn(_):
+                count = count + 1
+                if count == 1:
+                    previous_text = ls[0].text
+                elif count == 2:
+                    # duplicate this group
+                    ls2 = copy.deepcopy(ls)
+                    res.append(ls)
+                    if previous_text != "":
+                        ls[0].text = previous_text
+                    res.append(ls2)
+                else:
+                    res.append(ls)
+            case Subordinate():
+                res.append(ls)
+    return res
+
+
+def update_tree(etree):
+    root = ET.Element("root")
+    lst = []
+    for e in etree:
+        lst.append(e)
+    grouped = grouping(lst)
+    updated = daily_job(grouped)
+    for e in [item for agroup in updated for item in agroup]:
+        root.append(e)
+    return root

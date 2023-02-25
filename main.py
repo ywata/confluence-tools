@@ -3,12 +3,13 @@ import requests
 from requests.auth import HTTPBasicAuth
 import json
 import datetime
-from xml.etree import ElementTree as ET
+
 import sys
-import copy
+
 import yaml
 
-from confluence.content import get_tag_category, Independent, DependOn, Subordinate, grouping
+from confluence.content import get_tag_category, Independent, DependOn, Subordinate, grouping, update_tree, \
+    create_fake_root, create_body
 from confluence.net import post, put, multi_get
 
 
@@ -85,35 +86,9 @@ def find_page_by_path(url, top_pages, page_path):
     return None
 
 
-def create_fake_root(value, dic):
-    xmlns = ""
-    for ns in dic.keys():
-        ET.register_namespace(ns, dic[ns])
-        xmlns += f'''
-        xmlns:{ns}="{dic[ns]}"
-        '''
-    fake_value = f"""
-    <root {xmlns}>
-    {value}
-    </root>"""
-
-    root = ET.fromstring(fake_value)
-    return root
 
 
-def create_body(body, root, dic):
-    val = ET.tostring(root).decode()
 
-    for ns in dic.keys():
-        xmlns = f'xmlns:{ns}={dic[ns]}"'
-        val = val.replace(xmlns, "")
-    updated_body = {
-        "storage": {
-            "value": val,
-            "representation": body['storage']['representation']
-        }
-    }
-    return updated_body
 
 
 def update_page(url, auth, page_id, transform, new_title):
@@ -152,47 +127,6 @@ def update_page(url, auth, page_id, transform, new_title):
     return response2
 
 
-# remove first h? tag group
-# duplicate second h? group
-# Keep non h? group as it is.
-def daily_job(lss):
-    res = list()
-    count = 0
-    previous_text = ""
-    for ls in lss:
-        # As the construction assures that at least one element exists in ls.
-        assert ls != []
-        fst = ls[0]
-        tag_category = get_tag_category(fst.tag)
-        match tag_category:
-            case Independent() | DependOn(_):
-                count = count + 1
-                if count == 1:
-                    previous_text = ls[0].text
-                elif count == 2:
-                    # duplicate this group
-                    ls2 = copy.deepcopy(ls)
-                    res.append(ls)
-                    if previous_text != "":
-                        ls[0].text = previous_text
-                    res.append(ls2)
-                else:
-                    res.append(ls)
-            case Subordinate():
-                res.append(ls)
-    return res
-
-
-def update_tree(etree):
-    root = ET.Element("root")
-    lst = []
-    for e in etree:
-        lst.append(e)
-    grouped = grouping(lst)
-    updated = daily_job(grouped)
-    for e in [item for agroup in updated for item in agroup]:
-        root.append(e)
-    return root
 
 
 # Press the green button in the gutter to run the script.
