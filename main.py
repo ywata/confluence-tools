@@ -166,10 +166,11 @@ if __name__ == '__main__':
             space_key = res2[0]['key']
             space_root_pages_url = f"{url}/wiki/rest/api/space/{space_key}/content/page?depth=root&expand=children.page.page"
             res3 = multi_get(space_root_pages_url, auth, 2)
-            src_page = find_page_by_path(url, res3['results'], args.frm)
+            top_pages = res3['results']
+            src_page = find_page_by_path(url, top_pages, args.frm)
             if src_page is None:
                 sys.exit(f'src page not found')
-            to_page = find_page_by_path(url, res3['results'], args.into)
+            to_page = find_page_by_path(url, top_pages, args.into)
             if to_page is None:
                 sys.exit(f'pagent page not found')
 
