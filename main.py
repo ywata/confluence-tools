@@ -77,8 +77,8 @@ def find_page_by_path(url, top_pages, page_path)->Optional[dict]:
             page_id = page['id']
             # https: // howtoapi.atlassian.net / wiki / rest / api / content / 98400 / child / page
             page_children_url = f"{url}/wiki/rest/api/content/{page_id}/child/page?"
-            res = multi_get(page_children_url, auth, 2)
-            if res:
+            (sc, res) = multi_get(page_children_url, auth, 2)
+            if sc == 200:
                 return find_page_by_path(url, res['results'], "/".join(rest))
             else:
                 return None
@@ -159,13 +159,17 @@ if __name__ == '__main__':
     if args.command == "daily-update":
         try:
             space_name = args.space
-            res = multi_get(space_url, auth, 2)
+            (sc, res) = multi_get(space_url, auth, 2)
+            if sc != 200:
+                sys.exit(f'{space_url} error')
             res2 = list(filter(lambda dic: dic['name'] == space_name, res['results']))
             if len(res2) != 1:
                 sys.exit(f"multiple {space_name} found")
             space_key = res2[0]['key']
             space_root_pages_url = f"{url}/wiki/rest/api/space/{space_key}/content/page?depth=root&expand=children.page.page"
-            res3 = multi_get(space_root_pages_url, auth, 2)
+            (sc3, res3) = multi_get(space_root_pages_url, auth, 2)
+            if sc != 200:
+                sys.exit('getting top page error')
             top_pages = res3['results']
             src_page = find_page_by_path(url, top_pages, args.frm)
             if src_page is None:

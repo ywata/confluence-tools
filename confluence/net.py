@@ -25,7 +25,7 @@ def get(url, auth):
         auth=auth
     )
     return response
-def multi_get(url, auth, limit):
+def multi_get(url, auth, limit)->(int, dict):
     headers = {
         "Accept": "application/json"
     }
@@ -47,9 +47,8 @@ def multi_get(url, auth, limit):
             start = start + size
             res.append(resp)
         else:
-            print(response.content)
-            break
-    return merge_results(res)
+            return (response.status_code, json.loads(response.text))
+    return (200, merge_results(res))
 
 
 def post(url, auth, payload):
