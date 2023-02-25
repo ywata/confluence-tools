@@ -5,8 +5,9 @@ import json
 import datetime
 from xml.etree import ElementTree as ET
 import sys
-
+from typing import Optional
 import yaml
+import time
 
 from confluence.content import get_tag_category, Independent, DependOn, Subordinate, grouping, update_tree, \
     create_fake_root, create_body
@@ -84,26 +85,30 @@ def find_page_by_path(url, top_pages, page_path):
                 return None
     return None
 
-
-
-
-
-
-
-def update_page(url, auth, page_id, transform, new_title):
+def get_page_by_id(url, auth, page_id, repeat = 1)-> Optional[dict]:
     get_page_url = f"{url}/wiki/rest/api/content/{page_id}?expand=body.storage,version.number"
     get_headers = {
         "Accept": "application/json"
     }
-    response = requests.request(
-        "GET",
-        get_page_url,
-        headers=get_headers,
-        auth=auth
-    )
-    if response.status_code != 200:
-        return None
-    resp = json.loads(response.text)
+    count = repeat
+    while count > 0:
+        response = requests.request(
+            "GET",
+            get_page_url,
+            headers=get_headers,
+            auth=auth
+        )
+        if response.status_code == 200:
+            resp = json.loads(response.text)
+            return resp
+        else:
+            count = count - 1
+            time.sleep(1000)
+    return None
+
+
+def update_page(url, auth, page_id, transform, new_title):
+    resp = get_page_by_id(url, auth, page_id)
 
     update_page_url = f"{url}/wiki/rest/api/content/{page_id}"
     curr_body = resp['body']
