@@ -186,7 +186,8 @@ if __name__ == '__main__':
                 #(sc, r6) = get_long_running_task_by_id(url, auth, task_id)
             else:
                 sys.exit('copy failed')
-
+            # TODO: after copy_page() is succeeded, any error can cause to\
+            #  leave a temporary file named with dummy_title. It has to be deleted.
             (sc7, r7) = get_page_by_title(url, auth, space_key, dummy_title)
             if sc7 != 200:
                 print(sc7, r7)
