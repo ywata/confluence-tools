@@ -19,11 +19,11 @@ def parse_args():
     top_parser = argparse.ArgumentParser()
     top_parser.add_argument('--yaml', help='email and token', type=str, required=True)
     cmd_parser = top_parser.add_subparsers(dest='command')
-    copy_page_parser = cmd_parser.add_parser('copy-page', help='copy page on confluence')
-    copy_page_parser.add_argument('--space', help='space name', required=True)
-    copy_page_parser.add_argument('--from', dest='frm', help='page to be copied from', required=True)
-    copy_page_parser.add_argument('--into', help='page to be copied int0', required=True)
-    copy_page_parser.add_argument('--title-format', help='page title', required=True)
+    daily_update_parser = cmd_parser.add_parser('daily-update', help='copy page on confluence')
+    daily_update_parser.add_argument('--space', help='space name', required=True)
+    daily_update_parser.add_argument('--from', dest='frm', help='page to be copied from', required=True)
+    daily_update_parser.add_argument('--into', help='page to be copied int0', required=True)
+    daily_update_parser.add_argument('--title-format', help='page title', required=True)
 
     update_page_parser = cmd_parser.add_parser('update-page', help='update page ')
     update_page_parser.add_argument('--page-id', help='page-id')
@@ -156,7 +156,7 @@ if __name__ == '__main__':
     auth = HTTPBasicAuth(email, token)
     now = datetime.datetime.now()
 
-    if args.command == "copy-page":
+    if args.command == "daily-update":
         try:
             space_name = args.space
             res = multi_get(space_url, auth, 2)
@@ -178,8 +178,17 @@ if __name__ == '__main__':
                 #print(sc, r6)
             else:
                 sys.exit('copy failed')
-            (sc7, r7) = get_page_by_title(url, auth, space_key, "copy 2023-02-23-xyz")
-            print(sc7, r7)
+            new_title = "copy 2023-02-23-xyz"
+            (sc7, r7) = get_page_by_title(url, auth, space_key, new_title)
+            if sc7 != 200:
+                print(sc7, r7)
+                sys.exit('copied page not found')
+            for p in r7['results']:
+                if p['title']== new_title:
+                    copied_page_id = p['id']
+                    resp = update_page(url, auth, copied_page_id, update_tree, "2023-02-04-abc")
+
+
 
         except Exception as ex:
             print(ex)
