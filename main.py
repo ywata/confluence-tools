@@ -19,6 +19,8 @@ from confluence.net import post, put, multi_get, get
 def parse_args():
     top_parser = argparse.ArgumentParser()
     top_parser.add_argument('--yaml', help='email and token', type=str, required=True)
+    top_parser.add_argument('--log-level', default="ERROR", choices=["NOTEST", "INFO", "DEBUG", "ERROR", "CRITICAL"], help="TRACE, INFO, DEBUG, ERROR, CRITICAL are available")
+
     cmd_parser = top_parser.add_subparsers(dest='command')
     daily_update_parser = cmd_parser.add_parser('daily-update', help='copy page on confluence')
     daily_update_parser.add_argument('--space', help='space name', required=True)
@@ -36,6 +38,20 @@ def parse_args():
         for k in ["url", "email", "token"]:
             if k in dic['confluence']:
                 setattr(args, k, dic['confluence'][k])
+
+    log_dict = {
+        "CRITICAL":logging.CRITICAL,
+        "ERROR":logging.ERROR,
+        "WARN":logging.WARN,
+        "DEBUG":logging.DEBUG,
+        "INFO":logging.INFO,
+        "NOTEST":logging.NOTSET
+    }
+    if args.log_level in log_dict:
+        logging.getLogger().setLevel(log_dict[args.log_level])
+    else:
+        logging.getLogger().setLevel(logging.INFO)
+
     return args
 
 
@@ -159,26 +175,34 @@ if __name__ == '__main__':
     if args.command == "daily-update":
         try:
             space_name = args.space
+            logging.info("get space name")
             (sc, res) = multi_get(space_url, auth, 2)
             if sc != 200:
                 sys.exit(f'{space_url} error')
             res2 = list(filter(lambda dic: dic['name'] == space_name, res['results']))
             if len(res2) != 1:
                 sys.exit(f"multiple {space_name} found")
+
             space_key = res2[0]['key']
             space_root_pages_url = f"{url}/wiki/rest/api/space/{space_key}/content/page?depth=root&expand=children.page.page"
+            logging.info(f"get top pages of {space_key}")
             (sc3, res3) = multi_get(space_root_pages_url, auth, 2)
             if sc != 200:
                 sys.exit('getting top page error')
             top_pages = res3['results']
+
+            logging.info(f"get page down through {args.frm}")
             src_page = find_page_by_path(url, top_pages, args.frm)
             if src_page is None:
                 sys.exit(f'src page not found')
+
+            logging.info(f"get page to be copied in")
             to_page = find_page_by_path(url, top_pages, args.into)
             if to_page is None:
                 sys.exit(f'pagent page not found')
 
             new_title = now.strftime(args.title_format)
+            logging.info(f"copy page to {new_title}")
             (status_code, res5, dummy_title) = copy_page(url, src_page, to_page, new_title)
             if status_code == 202:
                 task_id = res5['id']
@@ -188,6 +212,7 @@ if __name__ == '__main__':
                 sys.exit('copy failed')
             # TODO: after copy_page() is succeeded, any error can cause to\
             #  leave a temporary file named with dummy_title. It has to be deleted.
+            logging.info(f"get id of  {dummy_title}")
             (sc7, r7) = get_page_by_title(url, auth, space_key, dummy_title)
             if sc7 != 200:
                 print(sc7, r7)
@@ -195,6 +220,7 @@ if __name__ == '__main__':
             for p in r7['results']:
                 if p['title']== dummy_title:
                     copied_page_id = p['id']
+                    logging.info(f"update page as {new_title}")
                     resp = update_page(url, auth, copied_page_id, update_tree, new_title)
 
 
