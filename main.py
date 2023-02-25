@@ -11,7 +11,7 @@ import time
 
 from confluence.content import get_tag_category, Independent, DependOn, Subordinate, grouping, update_tree, \
     create_fake_root, create_body
-from confluence.net import post, put, multi_get
+from confluence.net import post, put, multi_get, get
 
 
 def parse_args():
@@ -132,7 +132,10 @@ def update_page(url, auth, page_id, transform, new_title)->(int, dict):
     response2 = put(update_page_url, auth, payload2)
     return (response2.status_code, json.loads(response2.text))
 
-
+def get_long_running_task_by_id(url, auth, task_id) -> (int, dict):
+    get_url = f"{url}wiki/rest/api/longtask/{task_id}"
+    res = get(get_url, auth)
+    return (res.status_code, json.loads(res.text))
 
 
 # Press the green button in the gutter to run the script.
@@ -160,8 +163,15 @@ if __name__ == '__main__':
             to_page = find_page_by_path(url, res3['results'], args.into)
 
             new_title = now.strftime(args.title_format)
-            res5 = copy_page(url, src_page, to_page, new_title)
+            (status_code, res5) = copy_page(url, src_page, to_page, new_title)
             print(res5)
+            if status_code == 202:
+                task_id = res5['id']
+                (sc, r6) = get_long_running_task_by_id(url, auth, task_id)
+                print(sc, r6)
+            else:
+                print(res5)
+
         except Exception as ex:
             print(ex)
     elif args.command == 'update-page':

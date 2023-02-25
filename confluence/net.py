@@ -14,7 +14,17 @@ def merge_results(res):
         ret['limit'] += r['size']
     return ret
 
-
+def get(url, auth):
+    headers = {
+        "Accept": "application/json"
+    }
+    response = requests.request(
+        "GET",
+        url,
+        headers=headers,
+        auth=auth
+    )
+    return response
 def multi_get(url, auth, limit):
     headers = {
         "Accept": "application/json"
