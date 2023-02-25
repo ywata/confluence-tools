@@ -77,6 +77,15 @@ def copy_page(url, src_page, to_page, new_title) -> (int, dict):
     res = post(copy_page_url, auth, payload)
     return (res.status_code, json.loads(res.text), prefix+src_page['title'])
 
+def interpret_as_datetime(title, fmt):
+    if title == fmt:
+        return title
+    else:
+        try:
+            dt = datetime.datetime.strptime(title, fmt)
+            return title
+        except ValueError as ex:
+            return fmt
 
 def find_page_by_path(url, top_pages, page_path)->Optional[dict]:
     assert top_pages != []
@@ -86,7 +95,9 @@ def find_page_by_path(url, top_pages, page_path)->Optional[dict]:
     rest = components[1:]
 
     for page in top_pages:
-        if page['title'] == curr_comp:
+        title = page['title']
+        interpreted_comp = interpret_as_datetime(title, curr_comp)
+        if title == interpreted_comp:
             if rest == []:
                 return page
             # if we have more components, decent one level more.
