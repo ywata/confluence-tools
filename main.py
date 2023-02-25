@@ -1,17 +1,14 @@
 import argparse
-import requests
 from requests.auth import HTTPBasicAuth
 import json
 import datetime
-from xml.etree import ElementTree as ET
 import sys
 from typing import Optional
 import yaml
-import time
-import urllib
 import logging
 
-from confluence.content import get_tag_category, Independent, DependOn, Subordinate, grouping, update_tree, \
+from confluence.api import get_page_by_title, get_page_by_id, get_children
+from confluence.content import update_tree, \
     create_fake_root, create_body
 from confluence.net import post, put, multi_get, get
 
@@ -98,15 +95,6 @@ def interpret_as_datetime(title, fmt):
             # error case is the least priority
             return (fmt, datetime.datetime.min)
 
-def get_children(url, auth, page_id):
-    # https: // howtoapi.atlassian.net / wiki / rest / api / content / 98400 / child / page
-    page_children_url = f"{url}/wiki/rest/api/content/{page_id}/child/page?"
-    (sc, res) = multi_get(page_children_url, auth, 2)
-    if sc == 200:
-        return res['results']
-    else:
-        logging.error("get_children failed")
-        return []
 
 def find_page_by_path(url, auth, top_pages, components)->Optional[dict]:
     if components == []:
@@ -135,35 +123,6 @@ def find_page_by_path(url, auth, top_pages, components)->Optional[dict]:
     children = get_children(url, auth, curr_page['id'])
     return find_page_by_path(url, auth, children, rest)
 
-def get_page_by_id(url, auth, page_id, repeat = 1)-> Optional[tuple]:
-    get_page_url = f"{url}/wiki/rest/api/content/{page_id}?expand=body.storage,version.number"
-    get_headers = {
-        "Accept": "application/json"
-    }
-    count = repeat
-    while count > 0:
-        response = requests.request(
-            "GET",
-            get_page_url,
-            headers=get_headers,
-            auth=auth
-        )
-        if response.status_code == 200:
-            resp = json.loads(response.text)
-            return (response.status_code, json.loads(response.text))
-        else:
-            count = count - 1
-            if count == 0:
-                return (response.status_code, json.loads(response.text))
-            time.sleep(1000)
-    return None
-
-def get_page_by_title(url, auth, space, title):
-    space_ = urllib.parse.quote(space)
-    title_ = urllib.parse.quote(title)
-    get_url = f"{url}/wiki/rest/api/content?spaceKey={space_}&title={title_}"
-    response = get(get_url, auth)
-    return (response.status_code, json.loads(response.text))
 
 def update_page(url, auth, page_id, transform, new_title)->(int, dict):
     (status_code, resp) = get_page_by_id(url, auth, page_id)
