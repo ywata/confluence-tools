@@ -142,7 +142,7 @@ if __name__ == '__main__':
 
     if args.command == "copy-page":
         try:
-            space_name = "API TEST"
+            space_name = args.space
             res = multi_get(space_url, auth, 2)
             res2 = list(filter(lambda dic: dic['name'] == space_name, res['results']))
             if len(res2) != 1:
