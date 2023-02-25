@@ -40,7 +40,7 @@ def parse_args():
 
 
 
-def copy_page(url, src_page, to_page, new_title):
+def copy_page(url, src_page, to_page, new_title) -> (int, dict):
     copy_page_url = f"{url}/wiki/rest/api/content/{src_page['id']}/pagehierarchy/copy"
     payload = json.dumps({
         "copyAttachments": True,
@@ -58,10 +58,10 @@ def copy_page(url, src_page, to_page, new_title):
     })
 
     res = post(copy_page_url, auth, payload)
-    return res
+    return (res.status_code, json.loads(res.text))
 
 
-def find_page_by_path(url, top_pages, page_path):
+def find_page_by_path(url, top_pages, page_path)->Optional[dict]:
     assert top_pages != []
     components = page_path.split('/')
     assert components != []
@@ -83,7 +83,7 @@ def find_page_by_path(url, top_pages, page_path):
                 return None
     return None
 
-def get_page_by_id(url, auth, page_id, repeat = 1)-> Optional[dict]:
+def get_page_by_id(url, auth, page_id, repeat = 1)-> Optional[tuple]:
     get_page_url = f"{url}/wiki/rest/api/content/{page_id}?expand=body.storage,version.number"
     get_headers = {
         "Accept": "application/json"
@@ -98,15 +98,19 @@ def get_page_by_id(url, auth, page_id, repeat = 1)-> Optional[dict]:
         )
         if response.status_code == 200:
             resp = json.loads(response.text)
-            return resp
+            return (response.status_code, json.loads(response.text))
         else:
             count = count - 1
+            if count == 0:
+                return (response.status_code, json.loads(response.text))
             time.sleep(1000)
     return None
 
 
-def update_page(url, auth, page_id, transform, new_title):
-    resp = get_page_by_id(url, auth, page_id)
+def update_page(url, auth, page_id, transform, new_title)->(int, dict):
+    (status_code, resp) = get_page_by_id(url, auth, page_id)
+    if status_code != 200:
+        return (status_code, resp)
 
     update_page_url = f"{url}/wiki/rest/api/content/{page_id}"
     curr_body = resp['body']
@@ -126,7 +130,7 @@ def update_page(url, auth, page_id, transform, new_title):
         "status": "current"
     })
     response2 = put(update_page_url, auth, payload2)
-    return response2
+    return (response2.status_code, json.loads(response2.text))
 
 
 
