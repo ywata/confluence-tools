@@ -103,7 +103,7 @@ if __name__ == '__main__':
 
             new_title = now.strftime(args.title_format)
             logging.info(f"copy page from {old_title} to {new_title}")
-            (status_code, res5, dummy_title) = copy_page(url, src_page, to_page, new_title)
+            (status_code, res5, dummy_title) = copy_page(url, auth, src_page, to_page, new_title)
             if status_code == 202:
                 task_id = res5['id']
                 # This might be necessary in some situation.
@@ -128,7 +128,7 @@ if __name__ == '__main__':
                 if p['title']== dummy_title:
                     dummy_page_id = p['id']
                     logging.info(f"rename {dummy_title} to {old_title}")
-                    (sc_ren, res_ren) = rename_page(url, p, old_title)
+                    (sc_ren, res_ren) = rename_page(url, auth, p, old_title)
                     if sc_ren != 200:
                         logging.error(f"rename {dummy_title} to {old_title} failed.")
 

@@ -58,19 +58,18 @@ def get_children(url, auth, page_id):
         return []
 
 
-def get_top_pages(url, auth, spac_keye):
+def get_top_pages(url, auth, space_key):
     space_root_pages_url = f"{url}/wiki/rest/api/space/{space_key}/content/page?depth=root&expand=children.page.page"
     res = multi_get(space_root_pages_url, auth, 2)
     return res
 
 
-def rename_page(url, src_page, new_title):
+def rename_page(url, auth, src_page, new_title):
     rename_page_url = f"{url}/wiki/rest/api/content/{src_page['id']}"
     payload = json.dumps({
-        "version":{
+        "version": {
             "number": src_page['version']['number'] + 1
         },
-
 
         "title": new_title,
         "type": "page",
@@ -80,7 +79,7 @@ def rename_page(url, src_page, new_title):
     return (res.status_code, json.loads(res.text))
 
 
-def copy_page(url, src_page, to_page, new_title) -> (int, dict):
+def copy_page(url, auth, src_page, to_page, new_title) -> (int, dict):
     copy_page_url = f"{url}/wiki/rest/api/content/{src_page['id']}/pagehierarchy/copy"
     prefix = "copy-"
     payload = json.dumps({
