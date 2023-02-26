@@ -6,7 +6,7 @@ import yaml
 import logging
 
 from confluence.api import get_page_by_title, get_space, get_top_pages, rename_page, \
-    copy_page, update_page, find_page_by_path
+    copy_page, update_page, find_page_by_path, get_long_running_task_by_id
 from confluence.content import update_tree
 
 
@@ -113,7 +113,8 @@ if __name__ == '__main__':
             if status_code == 202:
                 task_id = res5['id']
                 # This might be necessary in some situation.
-                #(sc, r6) = get_long_running_task_by_id(url, auth, task_id)
+                (sc6, r6) = get_long_running_task_by_id(url, auth, task_id)
+                logging.info(f"({sc6}, {r6})")
             else:
                 logging.error(f"copy page failed:{src_page}")
                 sys.exit(1)
