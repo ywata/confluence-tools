@@ -12,7 +12,7 @@ from confluence.net import get, multi_get, put, post
 
 def get_space(url, auth):
     space_url = f"{url}/wiki/rest/api/space?"
-    (sc, res) = multi_get(space_url, auth, 2)
+    (sc, res) = multi_get(space_url, auth, 20)
     return (sc, res)
 def get_page_by_title(url, auth, space, title):
     space_ = urllib.parse.quote(space)
@@ -50,7 +50,7 @@ def get_page_by_id(url, auth, page_id, repeat = 1)-> Optional[tuple]:
 def get_children(url, auth, page_id):
     # https: // howtoapi.atlassian.net / wiki / rest / api / content / 98400 / child / page
     page_children_url = f"{url}/wiki/rest/api/content/{page_id}/child/page?"
-    (sc, res) = multi_get(page_children_url, auth, 2)
+    (sc, res) = multi_get(page_children_url, auth, 20)
     if sc == 200:
         return res['results']
     else:
@@ -60,7 +60,7 @@ def get_children(url, auth, page_id):
 
 def get_top_pages(url, auth, space_key):
     space_root_pages_url = f"{url}/wiki/rest/api/space/{space_key}/content/page?depth=root&expand=children.page.page"
-    res = multi_get(space_root_pages_url, auth, 2)
+    res = multi_get(space_root_pages_url, auth, 20)
     return res
 
 
