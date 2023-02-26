@@ -95,8 +95,9 @@ def interpret_as_datetime(title, fmt):
             dt = datetime.datetime.strptime(title, fmt)
             return (title, dt)
         except ValueError as ex:
-            # error case is the least priority
-            return (fmt, datetime.datetime.min)
+            # error case means title does not match agaisnt fmt
+            # it means, title get least priority
+            return (None, datetime.datetime.min)
 
 
 def find_page_by_path(url, auth, top_pages, components)->Optional[dict]:
