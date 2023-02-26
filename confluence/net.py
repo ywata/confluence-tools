@@ -5,10 +5,8 @@ import requests
 
 def merge_results(res) -> dict:
     assert res != []
-    res.reverse()
-    ret = res.pop()
-    res.reverse()
-    for r in res:
+    ret = res[0]
+    for r in res[1:]:
         ret['results'] += r['results']
         ret['size'] += r['size']
         ret['limit'] += r['size']
