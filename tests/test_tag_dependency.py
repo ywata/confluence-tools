@@ -20,7 +20,7 @@ def compare_tags(left, right):
 def test_toplevel_p():
     p = ET.Element('p')
     res = grouping([p])
-    assert res == [[p]]
+    assert compare(p, res)
 
 def test_h1_h1():
     h1 = ET.Element('h1')
