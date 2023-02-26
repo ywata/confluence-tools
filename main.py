@@ -58,7 +58,6 @@ def parse_args():
 
 def get_top_pages(url, auth, spac_keye):
     space_root_pages_url = f"{url}/wiki/rest/api/space/{space_key}/content/page?depth=root&expand=children.page.page"
-    logging.info(f"get top pages of {space_key}")
     res = multi_get(space_root_pages_url, auth, 2)
     return res
 
@@ -182,7 +181,7 @@ if __name__ == '__main__':
                 sys.exit(1)
 
             space_key = res2[0]['key']
-
+            logging.info(f"get top pages of {space_key}")
             (sc3, res3) = get_top_pages(url, auth, space_key)
             if sc != 200:
                 sys.exit('getting top page error')
