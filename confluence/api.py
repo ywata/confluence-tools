@@ -91,8 +91,8 @@ def copy_page(url, auth, src_page, to_page, new_title) -> (int, dict):
         "copyDescendants": True,
         "destinationPageId": f"{to_page['id']}",
         "titleOptions": {
-            "prefix": prefix,
-            "replace": f"{new_title}",
+            "prefix": f"{prefix}",
+            "replace": f"",
             "search": ""
         }
     })
@@ -128,7 +128,7 @@ def update_page(url, auth, page_id, transform, new_title)->(int, dict):
 
 
 def get_long_running_task_by_id(url, auth, task_id) -> (int, dict):
-    get_url = f"{url}wiki/rest/api/longtask/{task_id}"
+    get_url = f"{url}/wiki/rest/api/longtask/{task_id}"
     res = get(get_url, auth)
     return (res.status_code, json.loads(res.text))
 
