@@ -92,7 +92,7 @@ if __name__ == '__main__':
 
             (sc_new, res_new) = get_page_by_title(url, auth, space_key, new_title)
             if sc_new == 200 and res_new['results']:
-                logging.error(f"{new_title} already xexists. {sc_new}")
+                logging.error(f"{new_title} already xexists.")
                 sys.exit(1)
 
             logging.info(f"get page down through {args.frm}")
@@ -102,13 +102,13 @@ if __name__ == '__main__':
                 sys.exit(1)
             old_title = src_page['title']
 
-            logging.info(f"get page to be copied in")
+            logging.info(f"find a page to be copied in")
             to_page = find_page_by_path(url, auth, top_pages, args.into.split('/'))
             if to_page is None:
                 logging.error(f"destination parent not found:{args.into}")
                 sys.exit(1)
 
-            logging.info(f"copy page from {old_title} to {new_title}")
+            logging.info(f"copy page from {old_title} to {new_title} in {to_page['title']}")
             (status_code, res5, dummy_title) = copy_page(url, auth, src_page, to_page, new_title)
             if status_code == 202:
                 task_id = res5['id']
