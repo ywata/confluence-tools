@@ -56,7 +56,11 @@ def parse_args():
 
     return args
 
-
+def get_top_pages(url, auth, spac_keye):
+    space_root_pages_url = f"{url}/wiki/rest/api/space/{space_key}/content/page?depth=root&expand=children.page.page"
+    logging.info(f"get top pages of {space_key}")
+    res = multi_get(space_root_pages_url, auth, 2)
+    return res
 
 def copy_page(url, src_page, to_page, new_title) -> (int, dict):
     copy_page_url = f"{url}/wiki/rest/api/content/{src_page['id']}/pagehierarchy/copy"
@@ -178,9 +182,8 @@ if __name__ == '__main__':
                 sys.exit(1)
 
             space_key = res2[0]['key']
-            space_root_pages_url = f"{url}/wiki/rest/api/space/{space_key}/content/page?depth=root&expand=children.page.page"
-            logging.info(f"get top pages of {space_key}")
-            (sc3, res3) = multi_get(space_root_pages_url, auth, 2)
+
+            (sc3, res3) = get_top_pages(url, auth, space_key)
             if sc != 200:
                 sys.exit('getting top page error')
             top_pages = res3['results']
