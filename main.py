@@ -115,6 +115,8 @@ def find_page_by_path(url, auth, top_pages, components)->Optional[dict]:
             # Newesst date gets higher priority
             curr_dt = dt
             curr_page = page
+            if curr_dt == datetime.datetime.max:
+                break
 
     # There is no matched page against curr_comp, you don't have to
     # recursively call this function again.
