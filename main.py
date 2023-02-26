@@ -88,6 +88,13 @@ if __name__ == '__main__':
                 sys.exit('getting top page error')
             top_pages = res3['results']
 
+            new_title = now.strftime(args.title_format)
+
+            (sc_new, res_new) = get_page_by_title(url, auth, space_key, new_title)
+            if sc_new == 200 and res_new['results']:
+                logging.error(f"{new_title} already xexists. {sc_new}")
+                sys.exit(1)
+
             logging.info(f"get page down through {args.frm}")
             src_page = find_page_by_path(url, auth, top_pages, args.frm.split('/'))
             if src_page is None:
@@ -101,7 +108,6 @@ if __name__ == '__main__':
                 logging.error(f"destination parent not found:{args.into}")
                 sys.exit(1)
 
-            new_title = now.strftime(args.title_format)
             logging.info(f"copy page from {old_title} to {new_title}")
             (status_code, res5, dummy_title) = copy_page(url, auth, src_page, to_page, new_title)
             if status_code == 202:
