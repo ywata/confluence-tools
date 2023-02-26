@@ -7,7 +7,7 @@ from typing import Optional
 import yaml
 import logging
 
-from confluence.api import get_page_by_title, get_page_by_id, get_children
+from confluence.api import get_page_by_title, get_page_by_id, get_children, get_space
 from confluence.content import update_tree, \
     create_fake_root, create_body
 from confluence.net import post, put, multi_get, get
@@ -168,10 +168,9 @@ if __name__ == '__main__':
         try:
             space_name = args.space
             logging.info("get space name")
-            space_url = f"{url}/wiki/rest/api/space?"
-            (sc, res) = multi_get(space_url, auth, 2)
+            (sc, res) = get_space(url, auth)
             if sc != 200:
-                logging.error(f"{space_url} error")
+                logging.error(f"get_space() error")
                 sys.exit(1)
             res2 = list(filter(lambda dic: dic['name'] == space_name, res['results']))
             if len(res2) != 1:

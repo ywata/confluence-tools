@@ -8,7 +8,10 @@ import requests
 
 from confluence.net import get, multi_get
 
-
+def get_space(url, auth):
+    space_url = f"{url}/wiki/rest/api/space?"
+    (sc, res) = multi_get(space_url, auth, 2)
+    return (sc, res)
 def get_page_by_title(url, auth, space, title):
     space_ = urllib.parse.quote(space)
     title_ = urllib.parse.quote(title)
