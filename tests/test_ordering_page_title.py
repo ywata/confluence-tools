@@ -72,15 +72,15 @@ def test_find_page_by_path_recursive():
     top_pages = [page1]
     # second call
     page2 = {'title':"exact"}
-    confluence.api.get_children = Mock(return_value = [page2])
+    main.get_children = Mock(return_value = [page2])
     res = find_page_by_path("", "", top_pages, components)
     assert res == page2
 def test_get_children_400():
-    main.multi_get = Mock(return_value = (400, {}))
+    confluence.api.multi_get = Mock(return_value = (400, {}))
     res = get_children("url", "auth", 123)
     assert res == []
 
 def test_get_children_200():
-    main.multi_get = Mock(return_value = (200, {'results':["a"]}))
+    confluence.api.multi_get = Mock(return_value = (200, {'results':["a"]}))
     res = get_children("url", "auth", 123)
     assert res == ["a"]
