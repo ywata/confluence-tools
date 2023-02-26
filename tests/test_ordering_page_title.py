@@ -2,9 +2,7 @@ import unittest
 
 import confluence.api
 import confluence.net
-import main
-from main import find_page_by_path
-from confluence.api import get_children
+from confluence.api import get_children, find_page_by_path
 from unittest.mock import Mock
 
 def test_find_page_by_path_empty_top_page():
@@ -72,7 +70,7 @@ def test_find_page_by_path_recursive():
     top_pages = [page1]
     # second call
     page2 = {'title':"exact"}
-    main.get_children = Mock(return_value = [page2])
+    confluence.api.get_children = Mock(return_value = [page2])
     res = find_page_by_path("", "", top_pages, components)
     assert res == page2
 def test_get_children_400():
