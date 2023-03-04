@@ -2,6 +2,9 @@ from dataclasses import dataclass
 from enum import Enum
 from xml.etree import ElementTree as ET
 import copy
+from xml.etree.ElementTree import ParseError
+import re
+import sys
 
 
 # Independent tag is always the highest priority.
@@ -44,7 +47,18 @@ def get_tag_category(curr_tag) -> TagCategory:
             return tg
     return Subordinate()
 
-
+def analize_parse_error(re_list, msg, data) -> str:
+    for (rex, processor) in re_list:
+        matched = re.fullmatch(rex, msg)
+        if matched:
+            return processor(matched, data)
+    return msg
+def unbound_prefix_report(matched, data:str):
+    line = int(matched.group(1))
+    start = int(matched.group(2))
+    lines = data.split("\n")
+    assert start > 0, "The author expect start to be start from 0."
+    return lines[line-1][start-1:]
 def create_fake_root(value, dic) -> ET.Element:
     xmlns = ""
     for ns in dic.keys():
@@ -56,8 +70,16 @@ def create_fake_root(value, dic) -> ET.Element:
     <root {xmlns}>
     {value}
     </root>"""
-
-    root = ET.fromstring(fake_value)
+    try:
+        root = ET.fromstring(fake_value)
+    except ParseError as ex:
+        hint = analize_parse_error(
+            [(re.compile("unbound prefix: line ([0-9]+), column ([0-9]+)"), unbound_prefix_report)],
+            ex.msg, fake_value)
+        print(f"XML parse error near {hint}\n{ex.msg}", file=sys.stderr)
+        sys.exit(1)
+    except Exception as ex:
+        sys.exit(1)
     return root
 
 
