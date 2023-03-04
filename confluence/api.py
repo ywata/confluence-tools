@@ -110,7 +110,7 @@ def update_page(url, auth, page_id, transform, new_title)->(int, dict):
     curr_body = resp['body']
     # As ElementTree doesn't allow us to use undefined xmlns,
     # create a fake xml tree using dummy name space seems required.
-    dic = {"ac": "https://example.com/ac"}
+    dic = {"ac": "https://example.com/ac", "ri":"http://example.com/ri"}
     root = create_fake_root(curr_body['storage']['value'], dic)
     transformed_root = transform(root)
     transformed_body = create_body(curr_body, transformed_root, dic)
