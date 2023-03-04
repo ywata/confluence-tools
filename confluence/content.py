@@ -67,6 +67,7 @@ def create_fake_root(value, dic) -> ET.Element:
         xmlns:{ns}="{dic[ns]}"
         '''
     fake_value = f"""
+    <!DOCTYPE html [<!ENTITY nbsp "&#160;">]>
     <root {xmlns}>
     {value}
     </root>"""
