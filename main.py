@@ -138,6 +138,9 @@ if __name__ == '__main__':
                     (sc_ren, res_ren) = rename_page(url, auth, p, old_title)
                     if sc_ren != 200:
                         logging.error(f"rename {dummy_title} to {old_title} failed.")
+                    elif sc_ren == 200:
+                        print(f"Editable link: {url}/wiki/{res_ren['_links']['editui']}")
+                        print(f"Non editable link:{url}/wiki/{res_ren['_links']['editui']}")
 
         except Exception as ex:
             logging.error(ex)
