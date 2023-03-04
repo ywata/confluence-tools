@@ -48,7 +48,8 @@ def get_tag_category(curr_tag) -> TagCategory:
     return Subordinate()
 
 def analize_parse_error(re_list, msg, data) -> str:
-    for (rex, processor) in re_list:
+    for (re_str, processor) in re_list:
+        rex = re.compile(re_str)
         matched = re.fullmatch(rex, msg)
         if matched:
             return processor(matched, data)
@@ -75,7 +76,7 @@ def create_fake_root(value, dic) -> ET.Element:
         root = ET.fromstring(fake_value)
     except ParseError as ex:
         hint = analize_parse_error(
-            [(re.compile("unbound prefix: line ([0-9]+), column ([0-9]+)"), unbound_prefix_report)],
+            [("unbound prefix: line ([0-9]+), column ([0-9]+)", unbound_prefix_report)],
             ex.msg, fake_value)
         print(f"XML parse error near {hint}\n{ex.msg}", file=sys.stderr)
         sys.exit(1)
