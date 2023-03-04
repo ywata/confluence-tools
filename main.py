@@ -121,7 +121,7 @@ if __name__ == '__main__':
             # TODO: after copy_page() is succeeded, any error can cause to\
             #  leave a temporary file named with dummy_title. It has to be deleted.
             logging.info(f"update {old_title} with new title {new_title}")
-            (sc_up, resp_up) = update_page(url, auth, src_page['id'], update_tree, new_title)
+            (sc_up, res_up) = update_page(url, auth, src_page['id'], update_tree, new_title)
             if sc_up != 200:
                 logging.error("update_page() failed")
 
@@ -139,8 +139,8 @@ if __name__ == '__main__':
                     if sc_ren != 200:
                         logging.error(f"rename {dummy_title} to {old_title} failed.")
                     elif sc_ren == 200:
-                        print(f"Editable link: {url}/wiki/{res_ren['_links']['editui']}")
-                        print(f"Non editable link:{url}/wiki/{res_ren['_links']['editui']}")
+                        print(f"Editable link: {url}/wiki/{res_up['_links']['editui']}")
+                        print(f"Non editable link: {url}/wiki/{res_up['_links']['editui']}")
 
         except Exception as ex:
             logging.error(ex)
