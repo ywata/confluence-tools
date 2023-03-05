@@ -65,7 +65,7 @@ def test_interp_copy():
     </root>
     """
     root = ET.fromstring(xml)
-    res = interpreter([CopyNode()], root)
+    res = interpreter([Copy()], root)
     assert res[0].elem.tag == "root"
     assert res[0].elem != root
 
@@ -76,7 +76,7 @@ def test_interp_dup():
     </root>
     """
     root = ET.fromstring(xml)
-    res = interpreter([DupNode()], root)
+    res = interpreter([Dup()], root)
 
     assert len(res) == 2
     assert res[1].elem == root
@@ -90,7 +90,7 @@ def test_interp_pop():
     </root>
     """
     root = ET.fromstring(xml)
-    res = interpreter([PopNode()], root)
+    res = interpreter([Pop()], root)
     assert len(res) == 0
 
 def test_interp_remove():

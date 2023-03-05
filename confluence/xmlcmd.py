@@ -7,13 +7,13 @@ from collections import deque
 class GetXPath:
     xpath:str
 @dataclass
-class CopyNode:
+class Copy:
     pass
 @dataclass
-class DupNode:
+class Dup:
     pass
 @dataclass
-class PopNode:
+class Pop:
     pass
 
 @dataclass
@@ -34,7 +34,7 @@ class Insert:
 @dataclass
 class Remove:
     pass
-Cmd = GetXPath | CopyNode | DupNode | Insert | Remove | Push | CallFunction
+Cmd = GetXPath | Copy | Dup | Insert | Remove | Push | CallFunction
 
 @dataclass
 class Node:
@@ -63,16 +63,16 @@ def interp(cmd_stack:deque, data_stack)-> Data:
                 case _ :
                     raise Exception("Invalid node")
 
-        case CopyNode():
+        case Copy():
             assert len(data_stack) > 0
             org_node = data_stack.popleft()
             new_node = copy.deepcopy(org_node)
             data_stack.appendleft(new_node)
-        case DupNode():
+        case Dup():
             assert len(data_stack) > 0
             org_node = data_stack[0]
             data_stack.appendleft(org_node)
-        case PopNode():
+        case Pop():
             assert len(data_stack) > 0
             data_stack.popleft()
         case Remove():
