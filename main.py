@@ -121,7 +121,7 @@ if __name__ == '__main__':
             # TODO: after copy_page() is succeeded, any error can cause to\
             #  leave a temporary file named with dummy_title. It has to be deleted.
             logging.info(f"update {old_title} with new title {new_title}")
-            (sc_up, res_up) = update_page(url, auth, src_page['id'], update_tree, new_title)
+            (sc_up, res_up) = update_page(url, auth, src_page['id'], update_tree2, new_title)
             if sc_up != 200:
                 logging.error("update_page() failed")
 
