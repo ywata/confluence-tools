@@ -11,20 +11,20 @@ from confluence.content import create_fake_root, create_body
 from confluence.net import get, multi_get, put, post
 
 def get_space(url, auth):
-    space_url = f"{url}/rest/api/space?"
+    space_url = f"{url}/wiki/rest/api/space?"
     (sc, res) = multi_get(space_url, auth, 20)
     return (sc, res)
 def get_page_by_title(url, auth, space, title):
     space_ = urllib.parse.quote(space)
     title_ = urllib.parse.quote(title)
     # TODO: expand parameter should be supplied by an argument.
-    get_url = f"{url}/rest/api/content?spaceKey={space_}&title={title_}&expand=version.number"
+    get_url = f"{url}/wiki/rest/api/content?spaceKey={space_}&title={title_}&expand=version.number"
     response = get(get_url, auth)
     return (response.status_code, json.loads(response.text))
 
 
 def get_page_by_id(url, auth, page_id, repeat = 1)-> Optional[tuple]:
-    get_page_url = f"{url}/rest/api/content/{page_id}?expand=body.storage,version.number"
+    get_page_url = f"{url}/wiki/rest/api/content/{page_id}?expand=body.storage,version.number"
     get_headers = {
         "Accept": "application/json"
     }
@@ -48,7 +48,8 @@ def get_page_by_id(url, auth, page_id, repeat = 1)-> Optional[tuple]:
 
 
 def get_children(url, auth, page_id):
-    page_children_url = f"{url}/rest/api/content/{page_id}/child/page?"
+    # https: // howtoapi.atlassian.net / wiki / rest / api / content / 98400 / child / page
+    page_children_url = f"{url}/wiki/rest/api/content/{page_id}/child/page?"
     (sc, res) = multi_get(page_children_url, auth, 20)
     if sc == 200:
         return res['results']
@@ -58,13 +59,13 @@ def get_children(url, auth, page_id):
 
 
 def get_top_pages(url, auth, space_key):
-    space_root_pages_url = f"{url}/rest/api/space/{space_key}/content/page?depth=root&expand=children.page.page"
+    space_root_pages_url = f"{url}/wiki/rest/api/space/{space_key}/content/page?depth=root&expand=children.page.page"
     res = multi_get(space_root_pages_url, auth, 20)
     return res
 
 
 def rename_page(url, auth, src_page, new_title):
-    rename_page_url = f"{url}/rest/api/content/{src_page['id']}"
+    rename_page_url = f"{url}/wiki/rest/api/content/{src_page['id']}"
     payload = json.dumps({
         "version": {
             "number": src_page['version']['number'] + 1
@@ -79,7 +80,7 @@ def rename_page(url, auth, src_page, new_title):
 
 
 def copy_page(url, auth, src_page, to_page, new_title) -> (int, dict):
-    copy_page_url = f"{url}/rest/api/content/{src_page['id']}/pagehierarchy/copy"
+    copy_page_url = f"{url}/wiki/rest/api/content/{src_page['id']}/pagehierarchy/copy"
     prefix = "copy-"
     payload = json.dumps({
         "copyAttachments": True,
@@ -105,7 +106,7 @@ def update_page(url, auth, page_id, transform, new_title)->(int, dict):
     if status_code != 200:
         return (status_code, resp)
 
-    update_page_url = f"{url}/rest/api/content/{page_id}"
+    update_page_url = f"{url}/wiki/rest/api/content/{page_id}"
     curr_body = resp['body']
     # As ElementTree doesn't allow us to use undefined xmlns,
     # create a fake xml tree using dummy name space seems required.
@@ -127,7 +128,7 @@ def update_page(url, auth, page_id, transform, new_title)->(int, dict):
 
 
 def get_long_running_task_by_id(url, auth, task_id) -> (int, dict):
-    get_url = f"{url}/rest/api/longtask/{task_id}"
+    get_url = f"{url}/wiki/rest/api/longtask/{task_id}"
     res = get(get_url, auth)
     return (res.status_code, json.loads(res.text))
 
