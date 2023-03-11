@@ -8,7 +8,7 @@ from typing import Optional
 import requests
 
 from confluence.content import create_fake_root, create_body
-from confluence.net import get, multi_get, put, post, multi_get_v2
+from confluence.net import get, multi_get, put, post, multi_get_v2, format_query_parameter
 
 
 def get_space(url, auth):
@@ -25,8 +25,10 @@ def get_page_by_title(url, auth, space, title, extra={}):
     return (response.status_code, json.loads(response.text))
 
 
-def get_page_by_id(url, auth, page_id, repeat=1) -> Optional[tuple]:
-    get_page_url = f"{url}/wiki/rest/api/content/{page_id}?expand=body.storage,version.number"
+def get_page_by_id(url, auth, page_id, repeat=1, extra={}) -> Optional[tuple]:
+    #expand = body.storage, version.number
+    query_param = format_query_parameter(extra)
+    get_page_url = f"{url}/wiki/rest/api/content/{page_id}?{query_param}"
     get_headers = {
         "Accept": "application/json"
     }
@@ -103,7 +105,8 @@ def copy_page(url, auth, src_page, to_page, new_title) -> (int, dict):
 
 
 def update_page(url, auth, page_id, transform, new_title) -> (int, dict):
-    (status_code, resp) = get_page_by_id(url, auth, page_id)
+    #expand=body.storage,version.number
+    (status_code, resp) = get_page_by_id(url, auth, page_id, extra={'expand':'body.storage,version.number'})
     if status_code != 200:
         return (status_code, resp)
 
