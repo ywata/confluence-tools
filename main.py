@@ -129,7 +129,7 @@ if __name__ == '__main__':
                 logging.error("update_page() failed")
 
             logging.info(f"get id of {dummy_title}")
-            (sc_dummy, res_dummy) = get_page_by_title(url, auth, space_key, dummy_title)
+            (sc_dummy, res_dummy) = get_page_by_title(url, auth, space_key, dummy_title, {'expand':'version.number'})
             if sc_dummy != 200:
                 print(sc_dummy, res_dummy)
                 logging.error('copied page not found')

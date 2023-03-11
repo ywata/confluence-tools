@@ -17,12 +17,11 @@ def get_space(url, auth):
     return (sc, res)
 
 
-def get_page_by_title(url, auth, space, title):
-    space_ = urllib.parse.quote(space)
-    title_ = urllib.parse.quote(title)
-    # TODO: expand parameter should be supplied by an argument.
-    get_url = f"{url}/wiki/rest/api/content?spaceKey={space_}&title={title_}&expand=version.number"
-    response = get(get_url, auth)
+def get_page_by_title(url, auth, space, title, extra={}):
+    extra['spaceKey'] = space
+    extra['title'] = title
+    get_url = f"{url}/wiki/rest/api/content?"
+    response = get(get_url, auth, extra)
     return (response.status_code, json.loads(response.text))
 
 

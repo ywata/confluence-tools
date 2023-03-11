@@ -1,6 +1,7 @@
+import copy
 import json
 import re
-
+import urllib
 import requests
 
 
@@ -26,27 +27,32 @@ def merge_results_v2(res) -> dict:
     return ret
 
 
-def get(url, auth) -> (int, dict):
+def get(url, auth, extra = {}) -> (int, dict):
     headers = {
         "Accept": "application/json"
     }
+    query_param = format_query_parameter(extra)
+    request_url = f"{url}{query_param}"
     response = requests.request(
         "GET",
-        url,
+        request_url,
         headers=headers,
         auth=auth
     )
     return response
 
 
-def multi_get(url, auth, limit) -> (int, dict):
+def multi_get(url, auth, limit, extra = {}) -> (int, dict):
     headers = {
         "Accept": "application/json"
     }
     start = 0
     res = []
     while True:
-        request_url = f"{url}limit={limit}&start={start}"
+        extra['limit'] = limit
+        extra['start'] = start
+        query_param = format_query_parameter(extra)
+        request_url = f"{url}{query_param}"
         response = requests.request(
             "GET",
             request_url,
@@ -81,17 +87,19 @@ def parse_link_header(header):
         return None
 
 
-def multi_get_v2(url, auth, limit) -> (int, dict):
+def multi_get_v2(url, auth, limit, extra = {}) -> (int, dict):
     headers = {
         "Accept": "application/json"
     }
     res = []
     next_link = None
     while True:
+        extra2 = copy.copy(extra)
+        extra2['limit'] = limit
         if next_link:
-            request_url = f"{url}limit={limit}&next={next_link}"
-        else:
-            request_url = f"{url}limit={limit}"
+            extra2['next'] = next_link
+        query_param = format_query_parameter(extra2) # instead of extra
+        request_url = f"{url}{query_param}"
 
         response = requests.request(
             "GET",
@@ -144,3 +152,11 @@ def put(url, auth, payload) -> (int, dict):
         return response
     else:
         return response
+
+def format_query_parameter(dic):
+    res = ""
+    tmp = []
+    for key in dic:
+        tmp.append(f"{key}={dic[key]}")
+
+    return "&".join(tmp)
