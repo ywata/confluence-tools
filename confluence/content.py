@@ -1,10 +1,10 @@
+import copy
+import re
+import sys
 from dataclasses import dataclass
 from enum import Enum
 from xml.etree import ElementTree as ET
-import copy
 from xml.etree.ElementTree import ParseError
-import re
-import sys
 
 
 # Independent tag is always the highest priority.
@@ -47,6 +47,7 @@ def get_tag_category(curr_tag) -> TagCategory:
             return tg
     return Subordinate()
 
+
 def analize_parse_error(re_list, msg, data) -> str:
     for (re_str, processor) in re_list:
         rex = re.compile(re_str)
@@ -54,12 +55,16 @@ def analize_parse_error(re_list, msg, data) -> str:
         if matched:
             return processor(matched, data)
     return msg
-def unbound_prefix_report(matched, data:str):
+
+
+def unbound_prefix_report(matched, data: str):
     line = int(matched.group(1))
     start = int(matched.group(2))
     lines = data.split("\n")
     assert start > 0, "The author expect start to be start from 0."
-    return lines[line-1][start-1:]
+    return lines[line - 1][start - 1:]
+
+
 def create_fake_root(value, dic) -> ET.Element:
     xmlns = ""
     for ns in dic.keys():

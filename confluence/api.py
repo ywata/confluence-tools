@@ -10,10 +10,13 @@ import requests
 from confluence.content import create_fake_root, create_body
 from confluence.net import get, multi_get, put, post, multi_get_v2
 
+
 def get_space(url, auth):
     space_url = f"{url}/wiki/rest/api/space?"
     (sc, res) = multi_get_v2(space_url, auth, 20)
     return (sc, res)
+
+
 def get_page_by_title(url, auth, space, title):
     space_ = urllib.parse.quote(space)
     title_ = urllib.parse.quote(title)
@@ -23,7 +26,7 @@ def get_page_by_title(url, auth, space, title):
     return (response.status_code, json.loads(response.text))
 
 
-def get_page_by_id(url, auth, page_id, repeat = 1)-> Optional[tuple]:
+def get_page_by_id(url, auth, page_id, repeat=1) -> Optional[tuple]:
     get_page_url = f"{url}/wiki/rest/api/content/{page_id}?expand=body.storage,version.number"
     get_headers = {
         "Accept": "application/json"
@@ -97,10 +100,10 @@ def copy_page(url, auth, src_page, to_page, new_title) -> (int, dict):
     })
 
     res = post(copy_page_url, auth, payload)
-    return (res.status_code, json.loads(res.text), prefix+src_page['title'])
+    return (res.status_code, json.loads(res.text), prefix + src_page['title'])
 
 
-def update_page(url, auth, page_id, transform, new_title)->(int, dict):
+def update_page(url, auth, page_id, transform, new_title) -> (int, dict):
     (status_code, resp) = get_page_by_id(url, auth, page_id)
     if status_code != 200:
         return (status_code, resp)
@@ -109,7 +112,7 @@ def update_page(url, auth, page_id, transform, new_title)->(int, dict):
     curr_body = resp['body']
     # As ElementTree doesn't allow us to use undefined xmlns,
     # create a fake xml tree using dummy name space seems required.
-    dic = {"ac": "https://example.com/ac", "ri":"http://example.com/ri"}
+    dic = {"ac": "https://example.com/ac", "ri": "http://example.com/ri"}
     root = create_fake_root(curr_body['storage']['value'], dic)
     transformed_root = transform(root)
     transformed_body = create_body(curr_body, transformed_root, dic)
@@ -132,13 +135,13 @@ def get_long_running_task_by_id(url, auth, task_id) -> (int, dict):
     return (res.status_code, json.loads(res.text))
 
 
-def find_page_by_path(url, auth, top_pages, components)->Optional[dict]:
+def find_page_by_path(url, auth, top_pages, components) -> Optional[dict]:
     if components == []:
         return None
     curr_comp = components[0]
     rest = components[1:]
     curr_page = None
-    curr_dt = datetime.datetime.min #initial value is the minimum
+    curr_dt = datetime.datetime.min  # initial value is the minimum
     # find a top level page with the newest datetime.
     for page in top_pages:
         title = page['title']
@@ -156,7 +159,7 @@ def find_page_by_path(url, auth, top_pages, components)->Optional[dict]:
     if curr_page is None:
         return None
     # We are end of the component
-    if  rest == []:
+    if rest == []:
         return curr_page
 
     children = get_children(url, auth, curr_page['id'])
@@ -164,7 +167,6 @@ def find_page_by_path(url, auth, top_pages, components)->Optional[dict]:
 
 
 def interpret_as_datetime(title, fmt):
-
     if title == fmt:
         # Exact same title gets maximum priority.
         return (title, datetime.datetime.max)

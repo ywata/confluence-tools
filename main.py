@@ -13,7 +13,8 @@ from confluence.content import update_tree
 def parse_args():
     top_parser = argparse.ArgumentParser()
     top_parser.add_argument('--yaml', help='email and token', type=str, required=True)
-    top_parser.add_argument('--log-level', default="ERROR", choices=["NOTEST", "INFO", "DEBUG", "ERROR", "CRITICAL"], help="TRACE, INFO, DEBUG, ERROR, CRITICAL are available")
+    top_parser.add_argument('--log-level', default="ERROR", choices=["NOTEST", "INFO", "DEBUG", "ERROR", "CRITICAL"],
+                            help="TRACE, INFO, DEBUG, ERROR, CRITICAL are available")
 
     cmd_parser = top_parser.add_subparsers(dest='command')
     daily_update_parser = cmd_parser.add_parser('daily-update', help='copy page on confluence')
@@ -32,7 +33,6 @@ def parse_args():
 
     v2_api_parser = cmd_parser.add_parser('v2-api')
 
-
     args = top_parser.parse_args()
 
     with open(args.yaml, "r") as f:
@@ -42,12 +42,12 @@ def parse_args():
                 setattr(args, k, dic['confluence'][k])
 
     log_dict = {
-        "CRITICAL":logging.CRITICAL,
-        "ERROR":logging.ERROR,
-        "WARN":logging.WARN,
-        "DEBUG":logging.DEBUG,
-        "INFO":logging.INFO,
-        "NOTEST":logging.NOTSET
+        "CRITICAL": logging.CRITICAL,
+        "ERROR": logging.ERROR,
+        "WARN": logging.WARN,
+        "DEBUG": logging.DEBUG,
+        "INFO": logging.INFO,
+        "NOTEST": logging.NOTSET
     }
     if args.log_level in log_dict:
         logging.getLogger().setLevel(log_dict[args.log_level])
@@ -135,7 +135,7 @@ if __name__ == '__main__':
                 logging.error('copied page not found')
                 sys.exit(1)
             for p in res_dummy['results']:
-                if p['title']== dummy_title:
+                if p['title'] == dummy_title:
                     dummy_page_id = p['id']
                     logging.info(f"rename {dummy_title} to {old_title}")
                     (sc_ren, res_ren) = rename_page(url, auth, p, old_title)
@@ -158,8 +158,9 @@ if __name__ == '__main__':
         sys.exit('not implemented yet')
     elif args.command == 'v2-api':
         from confluence.net import multi_get_v2
+
         # /wiki/api/v2/spaces
-        resp =  multi_get_v2(f"{url}/wiki/api/v2/spaces?", auth, 1)
+        resp = multi_get_v2(f"{url}/wiki/api/v2/spaces?", auth, 1)
         sys.exit(1)
     else:
         print(f"{args.command} unhandled")

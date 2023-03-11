@@ -1,50 +1,70 @@
 import copy
-from dataclasses import dataclass
-from xml.etree import ElementTree as ET
-from xml.etree import ElementPath as EP
 from collections import deque
+from dataclasses import dataclass
+from xml.etree import ElementPath as EP
+from xml.etree import ElementTree as ET
+
+
 @dataclass
 class GetXPath:
-    xpath:str
+    xpath: str
+
+
 @dataclass
 class Copy:
     pass
+
+
 @dataclass
 class Dup:
     pass
+
+
 @dataclass
 class Pop:
     pass
+
 
 @dataclass
 class Push:
     elem: ET.Element
 
+
 @dataclass
 class CallFunction:
-    fun : object
-    args : object
-    conv : object
+    fun: object
+    args: object
+    conv: object
+
 
 @dataclass
 # Inject data on data_stack into the second node.
 class Insert:
-    nth:int
+    nth: int
+
 
 @dataclass
 class Remove:
     pass
+
+
 Cmd = GetXPath | Copy | Dup | Insert | Remove | Push | CallFunction
+
 
 @dataclass
 class Node:
     elem: ET.Element
+
+
 @dataclass
 class Null:
     pass
+
+
 Data = Node | Null
 
-def interp(cmd_stack:deque, data_stack)-> Data:
+
+def interp(cmd_stack: deque, data_stack) -> Data:
     if len(cmd_stack) == 0:
         return data_stack
     curr_cmd = cmd_stack.popleft()
@@ -60,7 +80,7 @@ def interp(cmd_stack:deque, data_stack)-> Data:
                         data_stack.appendleft(Null())
                     else:
                         data_stack.appendleft(Node(r))
-                case _ :
+                case _:
                     raise Exception("Invalid node")
 
         case Copy():
@@ -82,7 +102,7 @@ def interp(cmd_stack:deque, data_stack)-> Data:
             match node, top:
                 case Node(elm), Node(root):
                     root.remove(elm)
-                case _,_:
+                case _, _:
                     raise Exception("Invalid Node")
         case Push(elm):
             data_stack.appendleft(Node(elm))
@@ -94,7 +114,7 @@ def interp(cmd_stack:deque, data_stack)-> Data:
             match node, top:
                 case Node(elm), Node(root):
                     root.insert(nth, elm)
-                case _,_:
+                case _, _:
                     raise Exception("Invalid Node")
         case CallFunction(func, args, conv):
             assert func is not None
@@ -108,11 +128,7 @@ def interp(cmd_stack:deque, data_stack)-> Data:
     return res
 
 
-def interpreter(ls:list, root:ET.Element):
+def interpreter(ls: list, root: ET.Element):
     cq = deque(ls)
     dq = deque([Node(root)])
     return interp(cq, dq)
-
-
-
-

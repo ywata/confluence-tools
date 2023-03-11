@@ -1,7 +1,7 @@
 import json
-import urllib
-import requests
 import re
+
+import requests
 
 
 def merge_results(res) -> dict:
@@ -12,6 +12,7 @@ def merge_results(res) -> dict:
         ret['size'] += r['size']
         ret['limit'] += r['size']
     return ret
+
 
 def merge_results_v2(res) -> dict:
     assert res != []
@@ -25,7 +26,6 @@ def merge_results_v2(res) -> dict:
     return ret
 
 
-
 def get(url, auth) -> (int, dict):
     headers = {
         "Accept": "application/json"
@@ -37,7 +37,9 @@ def get(url, auth) -> (int, dict):
         auth=auth
     )
     return response
-def multi_get(url, auth, limit)->(int, dict):
+
+
+def multi_get(url, auth, limit) -> (int, dict):
     headers = {
         "Accept": "application/json"
     }
@@ -62,6 +64,7 @@ def multi_get(url, auth, limit)->(int, dict):
             return (response.status_code, json.loads(response.text))
     return (200, merge_results(res))
 
+
 def parse_link_header(header):
     if header is None:
         return None
@@ -77,7 +80,8 @@ def parse_link_header(header):
         # I don't expect this happens
         return None
 
-def multi_get_v2(url, auth, limit)->(int, dict):
+
+def multi_get_v2(url, auth, limit) -> (int, dict):
     headers = {
         "Accept": "application/json"
     }
