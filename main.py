@@ -30,6 +30,9 @@ def parse_args():
     new_month_parser.add_argument('--from', dest='frm', help='page to be copied from', required=True)
     new_month_parser.add_argument('--title-format', help='page title', required=True)
 
+    v2_api_parser = cmd_parser.add_parser('v2-api')
+
+
     args = top_parser.parse_args()
 
     with open(args.yaml, "r") as f:
@@ -153,6 +156,11 @@ if __name__ == '__main__':
             sys.exit(1)
     elif args.command == 'new-month':
         sys.exit('not implemented yet')
+    elif args.command == 'v2-api':
+        from confluence.net import multi_get_v2
+        # /wiki/api/v2/spaces
+        resp =  multi_get_v2(f"{url}/wiki/api/v2/spaces?", auth, 1)
+        sys.exit(1)
     else:
         print(f"{args.command} unhandled")
         logging.error(f"{args.command} not handled")
