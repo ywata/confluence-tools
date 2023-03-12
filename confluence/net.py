@@ -130,10 +130,7 @@ def post(url, auth, payload) -> (int, dict):
         headers=post_headers,
         auth=auth
     )
-    if response.status_code == 200 or response.status_code == 202:
-        return response
-    else:
-        return response
+    return response
 
 
 def put(url, auth, payload) -> (int, dict):
