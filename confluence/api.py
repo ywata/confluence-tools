@@ -12,7 +12,7 @@ from confluence.net import get, multi_get, put, post, multi_get_v2, format_query
 
 
 def get_space(url, auth):
-    space_url = f"{url}/wiki/rest/api/space?"
+    space_url = f"{url}/wiki/api/v2/spaces?"
     (sc, res) = multi_get_v2(space_url, auth, 20)
     return (sc, res)
 
@@ -24,32 +24,15 @@ def get_page_by_title(url, auth, space, title, extra={}):
     response = get(get_url, auth, extra)
     return (response.status_code, json.loads(response.text))
 
+def get_page_by_id(url, auth, page_id):
+    request_url = f"{url}/wiki/api/v2/pages/{page_id}?"
+    response = get(request_url, auth, {"body-format":"storage"})
+    return (response.status_code, json.loads(response.text))
 
-def get_page_by_id(url, auth, page_id, repeat=1, extra={}) -> Optional[tuple]:
-    #expand = body.storage, version.number
-    query_param = format_query_parameter(extra)
-    get_page_url = f"{url}/wiki/rest/api/content/{page_id}?{query_param}"
-    get_headers = {
-        "Accept": "application/json"
-    }
-    count = repeat
-    while count > 0:
-        response = requests.request(
-            "GET",
-            get_page_url,
-            headers=get_headers,
-            auth=auth
-        )
-        if response.status_code == 200:
-            resp = json.loads(response.text)
-            return (response.status_code, json.loads(response.text))
-        else:
-            count = count - 1
-            if count == 0:
-                return (response.status_code, json.loads(response.text))
-            time.sleep(1000)
-    return None
-
+def get_page_version_by_id(url, auth, page_id) -> (int, dict):
+    request_url = f"{url}/wiki/api/v2/pages/{page_id}/versions"
+    response = get(request_url, auth)
+    return (response.status_code, json.loads(response.text))
 
 def get_children(url, auth, page_id):
     page_children_url = f"{url}/wiki/api/v2/pages/{page_id}/children?"
@@ -83,7 +66,7 @@ def rename_page(url, auth, src_page, new_title):
 
 
 def copy_page(url, auth, src_page, to_page, new_title) -> (int, dict):
-    copy_page_url = f"{url}/wiki/rest/api/content/{src_page['id']}/pagehierarchy/copy"
+    copy_page_url = f"{url}/wiki/rest/api/content/{src_page['id']}/copy"
     prefix = "copy-"
     payload = json.dumps({
         "copyAttachments": True,
@@ -92,26 +75,26 @@ def copy_page(url, auth, src_page, to_page, new_title) -> (int, dict):
         "copyLabels": True,
         "copyCustomContents": True,
         "copyDescendants": True,
-        "destinationPageId": f"{to_page['id']}",
-        "titleOptions": {
-            "prefix": f"{prefix}",
-            "replace": f"",
-            "search": ""
-        }
+        "destination": {
+            "type": "parent_page",
+            "value": f"{to_page['id']}"
+        },
+        "pageTitle":f"{new_title}"
     })
 
     res = post(copy_page_url, auth, payload)
-    return (res.status_code, json.loads(res.text), prefix + src_page['title'])
+    return (res.status_code, json.loads(res.text))
 
 
-def update_page(url, auth, page_id, transform, new_title) -> (int, dict):
+def update_page(url, auth, page_id, transform, space_id, new_title) -> (int, dict):
     #expand=body.storage,version.number
-    (status_code, resp) = get_page_by_id(url, auth, page_id, extra={'expand':'body.storage,version.number'})
+    (status_code, resp) = get_page_by_id(url, auth, page_id)
     if status_code != 200:
         return (status_code, resp)
-
-    update_page_url = f"{url}/wiki/rest/api/content/{page_id}"
     curr_body = resp['body']
+    curr_ver = resp['version']['number']
+
+    update_page_url = f"{url}/wiki/api/v2/pages/{page_id}"
     # As ElementTree doesn't allow us to use undefined xmlns,
     # create a fake xml tree using dummy name space seems required.
     dic = {"ac": "https://example.com/ac", "ri": "http://example.com/ri"}
@@ -119,13 +102,17 @@ def update_page(url, auth, page_id, transform, new_title) -> (int, dict):
     transformed_root = transform(root)
     transformed_body = create_body(curr_body, transformed_root, dic)
     payload2 = json.dumps({
-        "version": {
-            "number": resp['version']['number'] + 1,
+        "id": f"{page_id}",
+        "status": "current",
+        "title": f"{new_title}",
+        "spaceId": f"{space_id}",
+        "body": {
+            "representation": "storage",
+            "value": transformed_body,
         },
-        "body": transformed_body,
-        "title": new_title,
-        "type": "page",
-        "status": "current"
+        "version": {
+            "number": curr_ver + 1
+        },
     })
     response2 = put(update_page_url, auth, payload2)
     return (response2.status_code, json.loads(response2.text))

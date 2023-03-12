@@ -96,13 +96,7 @@ def create_body(body, root, dic) -> dict:
     for ns in dic.keys():
         xmlns = f'xmlns:{ns}={dic[ns]}"'
         val = val.replace(xmlns, "")
-    updated_body = {
-        "storage": {
-            "value": val,
-            "representation": body['storage']['representation']
-        }
-    }
-    return updated_body
+    return val
 
 
 # LT : left < right

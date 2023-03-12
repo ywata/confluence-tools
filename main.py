@@ -5,7 +5,7 @@ import sys
 import yaml
 import logging
 
-from confluence.api import get_page_by_title, get_space, get_top_pages, rename_page, \
+from confluence.api import get_page_by_title, get_page_by_id, get_space, get_children, rename_page, \
     copy_page, update_page, find_page_by_path, get_long_running_task_by_id
 from confluence.content import update_tree
 
@@ -83,19 +83,13 @@ if __name__ == '__main__':
             if len(res2) != 1:
                 logging.error(f"multiple {space_name} found")
                 sys.exit(1)
-
-            space_key = res2[0]['key']
-            logging.info(f"get top pages of {space_key}")
-            (sc3, res3) = get_top_pages(url, auth, space_key)
-            if sc != 200:
-                sys.exit('getting top page error')
-            top_pages = res3['results']
-
+            space_id = res2[0]['id']
             new_title = now.strftime(args.title_format)
 
-            (sc_new, res_new) = get_page_by_title(url, auth, space_key, new_title)
-            if sc_new == 200 and res_new['results']:
-                logging.error(f"{new_title} already xexists.")
+            homepage_id = res2[0]['homepageId']
+            top_pages = get_children(url, auth, homepage_id)
+            if not top_pages:
+                logging.error(f"getting children of homepage failed")
                 sys.exit(1)
 
             logging.info(f"get page down through {args.frm}")
@@ -112,38 +106,17 @@ if __name__ == '__main__':
                 sys.exit(1)
 
             logging.info(f"copy page from {old_title} to {new_title} in {to_page['title']}")
-            (status_code, res5, dummy_title) = copy_page(url, auth, src_page, to_page, new_title)
-            if status_code == 202:
-                task_id = res5['id']
-                # This might be necessary in some situation.
-                (sc6, r6) = get_long_running_task_by_id(url, auth, task_id)
-                logging.info(f"({sc6}, {r6})")
-            else:
+            (status_code, res5) = copy_page(url, auth, src_page, to_page, new_title)
+            dst_page = res5
+            if status_code != 200:
                 logging.error(f"copy page failed:{src_page}")
                 sys.exit(1)
             # TODO: after copy_page() is succeeded, any error can cause to\
             #  leave a temporary file named with dummy_title. It has to be deleted.
-            logging.info(f"update {old_title} with new title {new_title}")
-            (sc_up, res_up) = update_page(url, auth, src_page['id'], update_tree, new_title)
+            logging.info(f"update body of new page")
+            (sc_up, res_up) = update_page(url, auth, dst_page['id'], update_tree, space_id, new_title)
             if sc_up != 200:
                 logging.error("update_page() failed")
-
-            logging.info(f"get id of {dummy_title}")
-            (sc_dummy, res_dummy) = get_page_by_title(url, auth, space_key, dummy_title, {'expand':'version.number'})
-            if sc_dummy != 200:
-                print(sc_dummy, res_dummy)
-                logging.error('copied page not found')
-                sys.exit(1)
-            for p in res_dummy['results']:
-                if p['title'] == dummy_title:
-                    dummy_page_id = p['id']
-                    logging.info(f"rename {dummy_title} to {old_title}")
-                    (sc_ren, res_ren) = rename_page(url, auth, p, old_title)
-                    if sc_ren != 200:
-                        logging.error(f"rename {dummy_title} to {old_title} failed.")
-                    elif sc_ren == 200:
-                        print(f"Editable link: {url}/wiki/{res_up['_links']['editui']}")
-                        print(f"Non editable link: {url}/wiki/{res_up['_links']['editui']}")
 
         except Exception as ex:
             logging.error(ex)
