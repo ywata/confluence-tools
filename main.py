@@ -23,15 +23,10 @@ def parse_args():
     daily_update_parser.add_argument('--into', help='page to be copied int0', required=True)
     daily_update_parser.add_argument('--title-format', help='page title', required=True)
 
-    update_page_parser = cmd_parser.add_parser('update-page', help='update page ')
-    update_page_parser.add_argument('--page-id', help='page-id')
-
     new_month_parser = cmd_parser.add_parser('new-month', help='prepare for new month')
     new_month_parser.add_argument('--space', help='space name', required=True)
     new_month_parser.add_argument('--from', dest='frm', help='page to be copied from', required=True)
     new_month_parser.add_argument('--title-format', help='page title', required=True)
-
-    v2_api_parser = cmd_parser.add_parser('v2-api')
 
     args = top_parser.parse_args()
 
@@ -128,20 +123,9 @@ if __name__ == '__main__':
         except Exception as ex:
             logging.error(ex)
             sys.exit(1)
-    elif args.command == 'update-page':
-        try:
-            resp = update_page(url, auth, 98793, update_tree, "2023-02-24-xyz")
-        except Exception as ex:
-            logging.error(f"{ex}")
-            sys.exit(1)
     elif args.command == 'new-month':
         sys.exit('not implemented yet')
-    elif args.command == 'v2-api':
-        from confluence.net import multi_get_v2
 
-        # /wiki/api/v2/spaces
-        resp = multi_get_v2(f"{url}/wiki/api/v2/spaces?", auth, 1)
-        sys.exit(1)
     else:
         print(f"{args.command} unhandled")
         logging.error(f"{args.command} not handled")
