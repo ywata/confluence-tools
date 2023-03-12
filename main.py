@@ -122,7 +122,7 @@ if __name__ == '__main__':
                 logging.error("update_page() failed")
 
             logging.info(f"Rename title from {tmp_title} to {old_title}")
-            (sc_rn, res_rn) = rename_page(url, auth, dst_page, old_title)
+            (sc_rn, res_rn) = rename_page(url, auth, dst_page['id'], old_title)
             if sc_rn != 200:
                 logging.error("rename_page() failed")
         except Exception as ex:

@@ -36,14 +36,24 @@ def get_children(url, auth, page_id):
         return []
 
 
-def rename_page(url, auth, src_page, new_title):
-    rename_page_url = f"{url}/wiki/rest/api/content/{src_page['id']}"
-    payload = json.dumps({
-        "version": {
-            "number": src_page['version']['number'] + 1
-        },
+def rename_page(url, auth, page_id, new_title):
+    (sc_page, res_page) = get_page_by_id(url, auth, page_id)
+    if sc_page != 200:
+        return (sc_page, json.loads(res_page.text))
+    src_page = res_page
 
+    rename_page_url = f"{url}/wiki/api/v2/pages/{src_page['id']}"
+    src_page['version']['number'] = src_page['version']['number'] + 1
+    payload = json.dumps({
+        "id": src_page['id'],
+        "status": "current",
         "title": new_title,
+        "spaceId": src_page['spaceId'],
+        'body': {
+            "representation":"storage",
+            "value":src_page['body']['storage']['value'],
+        },
+        'version':src_page['version'],
         "type": "page",
         "status": "current"
     })
