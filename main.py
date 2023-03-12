@@ -5,8 +5,8 @@ import sys
 import yaml
 import logging
 
-from confluence.api import get_page_by_title, get_page_by_id, get_space, get_children, rename_page, \
-    copy_page, update_page, find_page_by_path, get_long_running_task_by_id
+from confluence.api import get_space, get_children, rename_page, \
+    copy_page, update_page, find_page_by_path
 from confluence.content import update_tree
 
 

@@ -16,14 +16,6 @@ def get_space(url, auth):
     (sc, res) = multi_get_v2(space_url, auth, 20)
     return (sc, res)
 
-
-def get_page_by_title(url, auth, space, title, extra={}):
-    extra['spaceKey'] = space
-    extra['title'] = title
-    get_url = f"{url}/wiki/rest/api/content?"
-    response = get(get_url, auth, extra)
-    return (response.status_code, json.loads(response.text))
-
 def get_page_by_id(url, auth, page_id):
     request_url = f"{url}/wiki/api/v2/pages/{page_id}?"
     response = get(request_url, auth, {"body-format":"storage"})
@@ -42,12 +34,6 @@ def get_children(url, auth, page_id):
     else:
         logging.error("get_children failed")
         return []
-
-
-def get_top_pages(url, auth, space_key):
-    space_root_pages_url = f"{url}/wiki/rest/api/space/{space_key}/content/page?depth=root&expand=children.page.page"
-    res = multi_get(space_root_pages_url, auth, 20)
-    return res
 
 
 def rename_page(url, auth, src_page, new_title):
