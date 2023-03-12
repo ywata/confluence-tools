@@ -60,7 +60,8 @@ def parse_args():
 # As newer date should get higher priority, the function
 # rturns matched datetime. If title and fmt is same,
 # it will get maximum priority.
-
+def dummy_name(format, dt):
+    return dt.strftime(dt, f"{format}-%f")
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
@@ -84,7 +85,6 @@ if __name__ == '__main__':
                 logging.error(f"multiple {space_name} found")
                 sys.exit(1)
             space_id = res2[0]['id']
-            new_title = now.strftime(args.title_format)
 
             homepage_id = res2[0]['homepageId']
             top_pages = get_children(url, auth, homepage_id)
@@ -97,7 +97,10 @@ if __name__ == '__main__':
             if src_page is None:
                 logging.error(f"src page not found:{args.frm}")
                 sys.exit(1)
+
             old_title = src_page['title']
+            new_title = now.strftime(args.title_format)
+            tmp_title = now.strftime(f"{args.title_format}-%f")
 
             logging.info(f"find a page to be copied in")
             to_page = find_page_by_path(url, auth, top_pages, args.into.split('/'))
@@ -106,7 +109,7 @@ if __name__ == '__main__':
                 sys.exit(1)
 
             logging.info(f"copy page from {old_title} to {new_title} in {to_page['title']}")
-            (status_code, res5) = copy_page(url, auth, src_page, to_page, new_title)
+            (status_code, res5) = copy_page(url, auth, src_page, to_page, tmp_title)
             dst_page = res5
             if status_code != 200:
                 logging.error(f"copy page failed:{src_page}")
@@ -114,10 +117,14 @@ if __name__ == '__main__':
             # TODO: after copy_page() is succeeded, any error can cause to\
             #  leave a temporary file named with dummy_title. It has to be deleted.
             logging.info(f"update body of new page")
-            (sc_up, res_up) = update_page(url, auth, dst_page['id'], update_tree, space_id, new_title)
+            (sc_up, res_up) = update_page(url, auth, src_page['id'], update_tree, space_id, new_title)
             if sc_up != 200:
                 logging.error("update_page() failed")
 
+            logging.info(f"Rename title from {tmp_title} to {old_title}")
+            (sc_rn, res_rn) = rename_page(url, auth, dst_page, old_title)
+            if sc_rn != 200:
+                logging.error("rename_page() failed")
         except Exception as ex:
             logging.error(ex)
             sys.exit(1)
