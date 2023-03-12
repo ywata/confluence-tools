@@ -75,13 +75,13 @@ if __name__ == '__main__':
             if sc != 200:
                 logging.error(f"get_space() error")
                 sys.exit(1)
-            res2 = list(filter(lambda dic: dic['name'] == space_name, res['results']))
-            if len(res2) != 1:
+            sapces = list(filter(lambda dic: dic['name'] == space_name, res['results']))
+            if len(sapces) != 1:
                 logging.error(f"multiple {space_name} found")
                 sys.exit(1)
-            space_id = res2[0]['id']
+            space_id = sapces[0]['id']
 
-            homepage_id = res2[0]['homepageId']
+            homepage_id = sapces[0]['homepageId']
             top_pages = get_children(url, auth, homepage_id)
             if not top_pages:
                 logging.error(f"getting children of homepage failed")
@@ -104,21 +104,21 @@ if __name__ == '__main__':
                 sys.exit(1)
 
             logging.info(f"copy page from {old_title} to {new_title} in {to_page['title']}")
-            (status_code, res5) = copy_page(url, auth, src_page, to_page, tmp_title)
-            dst_page = res5
-            if status_code != 200:
+            (sc_copy, res_copy) = copy_page(url, auth, src_page, to_page, tmp_title)
+            dst_page = res_copy
+            if sc_copy != 200:
                 logging.error(f"copy page failed:{src_page}")
                 sys.exit(1)
             # TODO: after copy_page() is succeeded, any error can cause to\
             #  leave a temporary file named with dummy_title. It has to be deleted.
             logging.info(f"update body of new page")
-            (sc_up, res_up) = update_page(url, auth, src_page['id'], update_tree, space_id, new_title)
-            if sc_up != 200:
+            (sc_update, res_update) = update_page(url, auth, src_page['id'], update_tree, space_id, new_title)
+            if sc_update != 200:
                 logging.error("update_page() failed")
 
             logging.info(f"Rename title from {tmp_title} to {old_title}")
-            (sc_rn, res_rn) = rename_page(url, auth, dst_page['id'], old_title)
-            if sc_rn != 200:
+            (sc_rename, res_rename) = rename_page(url, auth, dst_page['id'], old_title)
+            if sc_rename != 200:
                 logging.error("rename_page() failed")
         except Exception as ex:
             logging.error(ex)
