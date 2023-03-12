@@ -151,7 +151,6 @@ def put(url, auth, payload) -> (int, dict):
         return response
 
 def format_query_parameter(dic):
-    res = ""
     tmp = []
     for key in dic:
         tmp.append(f"{key}={dic[key]}")
