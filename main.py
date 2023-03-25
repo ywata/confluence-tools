@@ -32,8 +32,8 @@ def parse_args():
     new_month_parser.add_argument('--title-format', help='page title', required=True)
 
     download_adf_parser = cmd_parser.add_parser('download-adf', help='download atlassian doc format data')
-    download_adf_parser.add_argument('--page-id', help='page id', required=True)
-    download_adf_parser.add_argument('--file', help='file name', required=True)
+    download_adf_parser.add_argument('--page-id', help='page ids', required=True, type=int, nargs='+')
+    download_adf_parser.add_argument('--dir', help='file name', required=True)
 
     validate_adf_parser = cmd_parser.add_parser('validate-adf', help='validate atlassian doc format data')
     validate_adf_parser.add_argument('--schema-file', help='file name of atlassian doc format json schema', required=True)
@@ -135,12 +135,19 @@ if __name__ == '__main__':
             logging.error(ex)
             sys.exit(1)
     elif args.command == 'download-adf':
-        (sc,rsp) = get_page_by_id(url, auth, args.page_id, "atlas_doc_format")
+        import os
         import pprint as pp
-        json_str = rsp['body']['atlas_doc_format']['value']
-        json_obj = json.loads(json_str)
-        with open(args.file, "w") as f:
-            json.dump(json_obj, f)
+        if not os.path.isdir(args.dir):
+            sys.exit(f"No such directory {args.dir}")
+
+        for page_id in args.page_id:
+            (sc, rsp) = get_page_by_id(url, auth, page_id, "atlas_doc_format")
+            if sc == 200:
+                json_str = rsp['body']['atlas_doc_format']['value']
+                title = rsp['title'].lower()
+                json_obj = json.loads(json_str)
+                with open(os.path.join(args.dir, f"{title}.json"), "w") as f:
+                    json.dump(json_obj, f)
     elif args.command == 'validate-adf':
         schema = None
         adf = None
