@@ -37,7 +37,7 @@ def parse_args():
 
     validate_adf_parser = cmd_parser.add_parser('validate-adf', help='validate atlassian doc format data')
     validate_adf_parser.add_argument('--schema-file', help='file name of atlassian doc format json schema', required=True)
-    validate_adf_parser.add_argument('--adf-file', help='file name of atlassian doc format', required=True)
+    validate_adf_parser.add_argument('--adf-file', help='file name of atlassian doc format', required=True, nargs='+')
 
     args = top_parser.parse_args()
 
@@ -155,11 +155,13 @@ if __name__ == '__main__':
             json_schema = json.load(f)
         import jsonschema.schema
         adf_schema = jsonschema.schema.parse_json_schema(json_schema)
-        with open(args.adf_file, "r") as f:
-            adf = json.load(f)
-        doc_schema = adf_schema.ref_map[adf_schema.ref]
-        parsed_adf = jsonschema.validater.parse_structure(adf_schema, doc_schema, adf)
-        pp.pprint(parsed_adf)
+        for file in args.adf_file:
+            print(f"Starting analyze {file}")
+            with open(file, "r") as f:
+                adf = json.load(f)
+                doc_schema = adf_schema.ref_map[adf_schema.ref]
+                parsed_adf = jsonschema.validater.parse_structure(adf_schema, doc_schema, adf)
+                pp.pprint(parsed_adf)
 
     elif args.command == 'new-month':
         sys.exit('not implemented yet')
