@@ -1,0 +1,1 @@
+{"type": "doc", "content": [{"type": "taskList", "attrs": {"localId": ""}, "content": [{"type": "taskItem", "attrs": {"state": "TODO", "localId": "5"}, "content": [{"text": "Non finished action mark", "type": "text"}]}, {"type": "taskItem", "attrs": {"state": "DONE", "localId": "6"}, "content": [{"text": "Finished action mark", "type": "text"}]}]}], "version": 1}

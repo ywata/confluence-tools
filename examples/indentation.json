@@ -1,0 +1,1 @@
+{"type": "doc", "content": [{"type": "paragraph", "content": [{"text": "This is a text.", "type": "text"}]}, {"type": "paragraph", "marks": [{"type": "indentation", "attrs": {"level": 1}}], "content": [{"text": "Indent this line.", "type": "text"}]}], "version": 1}
