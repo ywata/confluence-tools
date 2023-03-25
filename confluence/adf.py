@@ -6,6 +6,15 @@ from dataclasses import dataclass
 from functools import reduce
 
 import pprint as pp
+
+@dataclass()
+class Schema():
+    json_schema: str
+    namespace: str
+    ref: str
+    definitions:dict # type -> definition
+    ref_map : dict # ref to type
+
 @dataclass()
 class RestrictionX():
     pass
@@ -124,31 +133,29 @@ def parse_definition(val):
 
 
 def parse_definitions(defs:dict):
-    print()
-    definitions = []
+    definitions = {}
+    ref_map = {}
     for (key, val) in defs.items():
         ref_name = f"#/definitions/{key}"
         defn = parse_definition(val)
-        definitions.append((ref_name, defn))
-    return definitions
+        definitions[key] = defn
+        ref_map[ref_name] = key
+
+    return (definitions, ref_map)
 
 def parse_json_schema(json_schema_defn):
-    schema_name = None
-    description = None
-    definitions = None
+    schema_name, description, definitions, ref_map = None, None, None, None
+    ref_name = None
     if '$schema' in json_schema_defn:
         schema_name = json_schema_defn['$schema']
+    if "$ref" in json_schema_defn:
+        ref_name = json_schema_defn['$ref']
     if "description" in json_schema_defn:
         description = json_schema_defn['description']
     if 'definitions' in json_schema_defn:
-        definitions = parse_definitions(json_schema_defn['definitions'])
+        (definitions, ref_map) = parse_definitions(json_schema_defn['definitions'])
 
-    print(schema_name, description)
-    ref_to_defn = dict(definitions)
-    for (key, val) in ref_to_defn.items():
-        pp.pprint(val)
-
-    return (schema_name, description, definitions)
+    return Schema(schema_name, "", ref_name, definitions, ref_map)
 
 
 

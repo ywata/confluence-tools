@@ -147,7 +147,7 @@ if __name__ == '__main__':
         with open(args.adf_file, "r") as f:
             adf = json.load(f)
         import confluence.adf
-        (_, _, schema_defs) = confluence.adf.parse_json_schema(json_schema)
+        adf_schema = confluence.adf.parse_json_schema(json_schema)
         pass
 
     elif args.command == 'new-month':
