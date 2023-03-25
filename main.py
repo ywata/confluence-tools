@@ -4,9 +4,10 @@ import datetime
 import sys
 import yaml
 import logging
+import json
 
 from confluence.api import get_space, get_children, rename_page, \
-    copy_page, update_page, find_page_by_path
+    copy_page, update_page, find_page_by_path, get_page_by_id
 from confluence.content import update_tree
 
 
@@ -27,6 +28,10 @@ def parse_args():
     new_month_parser.add_argument('--space', help='space name', required=True)
     new_month_parser.add_argument('--from', dest='frm', help='page to be copied from', required=True)
     new_month_parser.add_argument('--title-format', help='page title', required=True)
+
+    download_adf_parser = cmd_parser.add_parser('download-adf', help='download atlassian doc format data')
+    download_adf_parser.add_argument('--page-id', help='page id', required=True)
+    download_adf_parser.add_argument('--file', help='file name', required=True)
 
     args = top_parser.parse_args()
 
@@ -123,6 +128,15 @@ if __name__ == '__main__':
         except Exception as ex:
             logging.error(ex)
             sys.exit(1)
+    elif args.command == 'download-adf':
+        (sc,rsp) = get_page_by_id(url, auth, args.page_id, "atlas_doc_format")
+        import pprint as pp
+        json_str = rsp['body']['atlas_doc_format']['value']
+        json_obj = json.loads(json_str)
+        with open(args.file, "w") as f:
+            json.dump(json_obj, f)
+    elif args.command == 'validate-adf':
+        pass
     elif args.command == 'new-month':
         sys.exit('not implemented yet')
 
