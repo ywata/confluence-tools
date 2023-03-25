@@ -16,9 +16,9 @@ def get_space(url, auth):
     (sc, res) = multi_get_v2(space_url, auth, 20)
     return (sc, res)
 
-def get_page_by_id(url, auth, page_id):
+def get_page_by_id(url, auth, page_id, body_format='storage'):
     request_url = f"{url}/wiki/api/v2/pages/{page_id}?"
-    response = get(request_url, auth, {"body-format":"storage"})
+    response = get(request_url, auth, {"body-format":body_format})
     return (response.status_code, json.loads(response.text))
 
 def get_page_version_by_id(url, auth, page_id) -> (int, dict):
