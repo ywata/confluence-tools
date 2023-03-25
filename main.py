@@ -147,7 +147,7 @@ if __name__ == '__main__':
         with open(args.schema_file, "r") as f:
             json_schema = json.load(f)
         import jsonschema.schema
-        adf_schema = jsonschema.adf.parse_json_schema(json_schema)
+        adf_schema = jsonschema.schema.parse_json_schema(json_schema)
         with open(args.adf_file, "r") as f:
             adf = json.load(f)
         doc_schema = adf_schema.ref_map[adf_schema.ref]
