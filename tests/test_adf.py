@@ -76,3 +76,4 @@ def test_parse_definition_array_in_object():
 
     assert res == JObject({'content':(JArray([(AnyOf([Ref('path')]))]), False)}, None)
     #assert res == JObject([('content', JArray([(AnyOf([Ref('path')]))]), False)], None)
+

@@ -5,6 +5,7 @@ import sys
 import yaml
 import logging
 import json
+import pprint as pp
 
 from confluence.api import get_space, get_children, rename_page, \
     copy_page, update_page, find_page_by_path, get_page_by_id
@@ -144,11 +145,13 @@ if __name__ == '__main__':
         adf = None
         with open(args.schema_file, "r") as f:
             json_schema = json.load(f)
-        with open(args.adf_file, "r") as f:
-            adf = json.load(f)
         import confluence.adf
         adf_schema = confluence.adf.parse_json_schema(json_schema)
-        pass
+        with open(args.adf_file, "r") as f:
+            adf = json.load(f)
+        doc_schema = adf_schema.ref_map[adf_schema.ref]
+        parsed_adf = confluence.adf.parse_structure(adf_schema, doc_schema, adf)
+        pp.pprint(parsed_adf)
 
     elif args.command == 'new-month':
         sys.exit('not implemented yet')
