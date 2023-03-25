@@ -33,6 +33,10 @@ def parse_args():
     download_adf_parser.add_argument('--page-id', help='page id', required=True)
     download_adf_parser.add_argument('--file', help='file name', required=True)
 
+    validate_adf_parser = cmd_parser.add_parser('validate-adf', help='validate atlassian doc format data')
+    validate_adf_parser.add_argument('--schema-file', help='file name of atlassian doc format json schema', required=True)
+    validate_adf_parser.add_argument('--adf-file', help='file name of atlassian doc format', required=True)
+
     args = top_parser.parse_args()
 
     with open(args.yaml, "r") as f:
@@ -136,7 +140,16 @@ if __name__ == '__main__':
         with open(args.file, "w") as f:
             json.dump(json_obj, f)
     elif args.command == 'validate-adf':
+        schema = None
+        adf = None
+        with open(args.schema_file, "r") as f:
+            json_schema = json.load(f)
+        with open(args.adf_file, "r") as f:
+            adf = json.load(f)
+        import confluence.adf
+        (_, _, schema_defs) = confluence.adf.parse_json_schema(json_schema)
         pass
+
     elif args.command == 'new-month':
         sys.exit('not implemented yet')
 
