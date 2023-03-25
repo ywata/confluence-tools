@@ -1,8 +1,7 @@
-import requests
-import confluence.adf
-from confluence.adf import parse_definition, JObject, JArray, AllOf, AnyOf, Ref, Enum
+import jsonschema.schema
+from jsonschema.schema import parse_definition, JObject, JArray, AnyOf, Ref, Enum
 def test_create_adf_processor():
-    res = confluence.adf.generate_adf_processor()
+    res = jsonschema.schema.generate_adf_processor()
     return
 
 def test_parse_definition_object_type():
