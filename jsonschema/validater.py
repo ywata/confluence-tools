@@ -91,7 +91,7 @@ def parse_string(schema, curr, target):
             for c in constraints:
                 parsed = parse_structure(schema, c, target)
                 if parsed is None:
-                    logging.debug(f"parse_jobject() failed {c} {target[k]}")
+                    logging.debug(f"parse_jobject() failed {c} {target}")
                     return None
             return target
 
