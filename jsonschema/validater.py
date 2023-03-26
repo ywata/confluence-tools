@@ -59,7 +59,9 @@ def parse_array(schema, curr, target:dict):
 
 def parse_jobject(schema, jobject:JObject, target:dict):
     assert type(target) == dict
-    match_keys(jobject, target)
+    matched = match_keys(jobject, target)
+    if matched is None:
+        return None
 
     for (k, constraint) in jobject.attributes.items():
         try:
