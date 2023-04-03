@@ -75,7 +75,7 @@ def parse_type(val):
         return JObject(fields, addProp)
 
     elif val['type'] == 'array':
-        del val['type']
+        #del val['type']
         conditions = []
         for (key, constraints) in val.items():
             if type(constraints) == dict:
@@ -189,4 +189,50 @@ def generate_adf_processor():
         print(ex)
         import sys
         sys.exit(1)
+
+def get_dependencies(schema, start, top_level, tmp:list):
+    match start:
+        case JObject(obj, _):
+            for (p, v) in obj.items():
+                rs = get_dependencies(schema, v, False, [])
+                tmp = tmp + rs
+            return tmp
+        case (JObject(obj, _), _):
+            for (p, v) in obj.items():
+                rs = get_dependencies(schema, v, False, [])
+                tmp = tmp + rs
+            return tmp
+
+        case JArray(arr):
+            for a in arr:
+                rs = get_dependencies(schema, a, False, [])
+                tmp = tmp + rs
+            return tmp
+        case (JArray(arr), _):
+            for a in arr:
+                rs = get_dependencies(schema, a, False, [])
+                tmp = tmp + rs
+            return tmp
+        case AnyOf(arr):
+            ()
+            for a in arr:
+                rs = get_dependencies(schema, a, False, [])
+                tmp = tmp + rs
+            return tmp
+        case AllOf(arr):
+            for a in arr:
+                rs = get_dependencies(schema, a, False, [])
+                tmp = tmp + rs
+            return tmp
+        case Ref(ar):
+            return tmp + [ar]
+        case d:
+            if type(d) == dict:
+                for (k, val) in d.items():
+                    rs = get_dependencies(schema, val, False, [])
+                    tmp = tmp + rs
+                return tmp
+            else:
+                return []
+            return []
 

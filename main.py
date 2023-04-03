@@ -6,8 +6,10 @@ import yaml
 import logging
 import json
 import pprint as pp
+import jsonschema.api
 
 import jsonschema.validater
+import jsonschema.schema as sc
 from confluence.api import get_space, get_children, rename_page, \
     copy_page, update_page, find_page_by_path, get_page_by_id
 from confluence.content import update_tree
@@ -155,14 +157,17 @@ if __name__ == '__main__':
             json_schema = json.load(f)
         import jsonschema.schema
         adf_schema = jsonschema.schema.parse_json_schema(json_schema)
-        for file in args.adf_file:
-            print(f"Starting analyze {file}")
-            with open(file, "r") as f:
-                adf = json.load(f)
-                doc_schema = adf_schema.ref_map[adf_schema.ref]
-                parsed_adf = jsonschema.validater.parse_structure(adf_schema, doc_schema, adf)
-                pp.pprint(parsed_adf)
+#        for file in args.adf_file:
+#            print(f"Starting analyze {file}")
+#            with open(file, "r") as f:
+#                adf = json.load(f)
+#                doc_schema = adf_schema.ref_map[adf_schema.ref]
+#                parsed_adf = jsonschema.validater.parse_structure(adf_schema, doc_schema, adf)
 
+
+        jsonschema.api.normalize_schema(adf_schema)
+
+        pass
     elif args.command == 'new-month':
         sys.exit('not implemented yet')
 
