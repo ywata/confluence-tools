@@ -28,6 +28,9 @@ class JObject():
 class JNumber():
     constraints : list # of (name, restriction)
 @dataclass()
+class JInteger():
+    constraints : list # of (name, restriction)
+@dataclass()
 class JBoolean():
     constraints : list # of (name, restriction)
 
@@ -54,10 +57,21 @@ class Ref():
 class Enum():
     enums : list
 
+def parse_simple_type(typ, val, constructor, defined_keys):
+    assert typ in ['integer', 'number', 'string', 'boolean']
+    res = {}
+    for (key, v) in val.items():
+        if key != 'type':
+            res[key] = v
+    if res == {}:
+        return constructor([])
+    else:
+        return constructor([res])
+
+
 def parse_type(val):
     if val['type'] == 'object':
         fields = []
-        assert 'properties' in val
         #pp.pprint((list(val.keys()), list(val['properties'].keys())))
         req = []
         addProp = None
@@ -67,17 +81,19 @@ def parse_type(val):
             addProp = val['additionalProperties']
 
         fields = {}
-        for (key, constraints) in val['properties'].items():
-            cond = parse_definition(constraints)
-            field = (key, cond, key in req)
-            fields[key] = (cond, key in req)
+        if 'properties' in val:
+            for (key, constraints) in val['properties'].items():
+                cond = parse_definition(constraints)
+                fields[key] = (cond, key in req)
 
         return JObject(fields, addProp)
 
     elif val['type'] == 'array':
-        #del val['type']
+        defined_keys = ['items', 'prefixItems', 'contains', 'minContains', 'maxContains', 'minItems', 'maxItems', 'uniqueItems ']
         conditions = []
         for (key, constraints) in val.items():
+            if key == 'type': # skip 'type'
+                continue
             if type(constraints) == dict:
                 cond = parse_definition(constraints)
             elif type(constraints) == list:
@@ -91,11 +107,24 @@ def parse_type(val):
             conditions.append(cond)
         return JArray(conditions)
     elif val['type'] == 'string':
-        return JString([])
+        defined_keys = ['minLength', 'maxLength']
+        res = parse_simple_type(val['type'], val, JString, defined_keys)
+        return res
+    elif val['type'] == 'integer':
+        assert len(val) == 1
+        defined_keys = []
+        res = parse_simple_type(val['type'], val, JInteger, defined_keys)
+        return res
     elif val['type'] == 'number':
-        return JNumber([])
+        defined_keys = ['minumum', 'maxmum', 'exclusiveMinum', 'exclusiveMaxmum']
+        res = parse_simple_type(val['type'], val, JNumber, defined_keys)
+        return res
     elif val['type'] == 'boolean':
-        return JBoolean([])
+        assert len(val) == 1
+        defined_keys = []
+        res = parse_simple_type(val['type'], val, JBoolean, defined_keys)
+        return res
+
     else:
         return Condition(val)
         #pp.pprint(val)
@@ -139,12 +168,20 @@ def parse_definitions(defs:dict):
         typ = None
         match defn :
             case JObject(attr, addProp):
-                typ = attr['type'][0].enums[0]
+                typ = ref_name
             case JArray(_):
                 typ = ref_name
             case AllOf(_):
                 typ = ref_name
             case AnyOf(_):
+                typ = ref_name
+            case JString(_):
+                typ = ref_name
+            case JInteger(_):
+                typ = ref_name
+            case JNumber(_):
+                typ = ref_name
+            case JBoolean(_):
                 typ = ref_name
             case _:
                 assert False, "This case should not happen."
