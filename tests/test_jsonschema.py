@@ -2,237 +2,535 @@ import unittest
 import json
 
 import jsonschema.schema as sc
-def test_get_jsonschema_for_adf():
-    url = "https://unpkg.com/@atlaskit/adf-schema@25.2.3/dist/json-schema/v1/full.json"
-    resp = ()
-
-    assert resp is not None
-
-def test_string_basic():
+from jsonschema.schema import *
+def test_top_level_string():
     input = '''{
-  "definitions": {
-    "string1": {
-       "type": "string"
-    }
-  }
-}   
-'''
-    dic = json.loads(input)
-    res = sc.parse_json_schema(dic)
-    assert res.ref_map['#/definitions/string1'] == sc.JString([])
-
-def test_string_min_max():
-    input = '''{
-  "definitions": {
-    "string1": {
-       "type": "string",
-       "minLength":1,
-       "maxLength":3
-    }
-  }
-}   
-'''
-    dic = json.loads(input)
-    res = sc.parse_json_schema(dic)
-    assert res.ref_map['#/definitions/string1'] == sc.JString([{"minLength":1, "maxLength":3}])
-
-
-
-def test_string_integer():
-    input = '''{
-  "definitions": {
-    "integer1": {
-       "type": "integer"
-    }
-  }
-}   
-'''
-    dic = json.loads(input)
-    res = sc.parse_json_schema(dic)
-    assert res.ref_map['#/definitions/integer1'] == sc.JInteger([])
-
-def test_number_basic():
-    input = '''{
-  "definitions": {
-    "number1": {
-       "type": "number"
-    }
-  }
-}   
-'''
-    dic = json.loads(input)
-    res = sc.parse_json_schema(dic)
-    assert res.ref_map['#/definitions/number1'] == sc.JNumber([])
-
-def test_number_multipleOf():
-    input = '''{
-  "definitions": {
-    "number1": {
-       "type": "number",
-       "multipleOf": 10
-    }
-  }
-}   
-'''
-    dic = json.loads(input)
-    res = sc.parse_json_schema(dic)
-    assert res.ref_map['#/definitions/number1'] == sc.JNumber([{"multipleOf":10}])
-
-def test_object_basic():
-    input = '''{
-  "definitions": {
-    "object1": {
-      "type": "object",
-      "properties": {
-        "number": { "type": "number" },
-        "street_name": { "type": "string" },
-        "street_type": { "enum": ["Street", "Avenue", "Boulevard"] }
-        }
-    }
-  }
-}   
-'''
-    dic = json.loads(input)
-    res = sc.parse_json_schema(dic)
-    val = res.ref_map['#/definitions/object1']
-    assert (val == sc.JObject({'number':(sc.JNumber([]), False), 'street_name':(sc.JString([]),False), 'street_type':(sc.Enum(['Street', 'Avenue', 'Boulevard']), False)}, None))
-
-
-def test_object_required():
-    input = '''{
-  "definitions": {
-    "object1": {
-      "type": "object",
-      "properties": {
-        "number": { "type": "number" },
-        "street_name": { "type": "string" },
-        "street_type": { "enum": ["Street", "Avenue", "Boulevard"] }
-        },
-      "required":["number"]
-    }
-  }
-}   
-'''
-    dic = json.loads(input)
-    res = sc.parse_json_schema(dic)
-    val = res.ref_map['#/definitions/object1']
-    assert (val == sc.JObject({'number':(sc.JNumber([]), True), 'street_name':(sc.JString([]),False), 'street_type':(sc.Enum(['Street', 'Avenue', 'Boulevard']), False)}, None))
-
-
-def test_object_additionalProperty():
-    input = '''{
-  "definitions": {
-    "object1": {
-      "type": "object",
-      "properties": {
-        "number": { "type": "number" },
-        "street_name": { "type": "string" },
-        "street_type": { "enum": ["Street", "Avenue", "Boulevard"] }
-        },
-      "required":["number"],
-      "additionalProperties" : true
-    }
-  }
-}   
-'''
-    dic = json.loads(input)
-    res = sc.parse_json_schema(dic)
-    val = res.ref_map['#/definitions/object1']
-    assert (val == sc.JObject({'number':(sc.JNumber([]), True), 'street_name':(sc.JString([]),False), 'street_type':(sc.Enum(['Street', 'Avenue', 'Boulevard']), False)}, True))
-
-
-def test_array_simple():
-    input = '''{
-    "definitions": {
-      "array1": {
-        "type": "array",
-        "items": {
-          "type": "number"
-      }
-    }
-  }
-}   
-'''
-    dic = json.loads(input)
-    res = sc.parse_json_schema(dic)
-    assert res.ref_map['#/definitions/array1'] == sc.JArray([sc.JNumber([])])
-
-def test_array_simple_with_minmaxItems():
-    input = '''{
-    "definitions": {
-      "array1": {
-        "type": "array",
-        "items": {
-          "type": "number"
-        },
-        "minItems":1,
-        "maxItems":3
-      }
-   }
-}   
-'''
-    dic = json.loads(input)
-    res = sc.parse_json_schema(dic)
-    assert res.ref_map['#/definitions/array1'] == sc.JArray([sc.JNumber([]), {"minItems":1}, {"maxItems":3}])
-
-def test_array_anyOf():
-    input = '''{
-    "definitions": {
-      "array1": {
-        "type": "array",
-        "items": {
-          "anyOf":[
-            {"type":"object"},
-            {"type":"number"},
-            {"type":"boolean"}
-          ]
-        }
-      }
-   }
-}   
-'''
-    dic = json.loads(input)
-    res = sc.parse_json_schema(dic)
-    assert res.ref_map['#/definitions/array1'] == sc.JArray([sc.AnyOf([sc.JObject({}, None),sc.JNumber([]), sc.JBoolean([])])])
-
-
-def test_array_allOf():
-    input = '''{
-    "definitions": {
-      "array1": {
-        "type": "array",
-        "items": {
-          "anyOf":[
-            {"type":"object"},
-            {"type":"number"}
-          ]
-        }
-      }
-   }
+  "$id": "https://example.com/address.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "type": "string",
+  "minLength": 2,
+  "maxLength": 3
 }
 '''
     dic = json.loads(input)
     res = sc.parse_json_schema(dic)
-    assert res.ref_map['#/definitions/array1'] == sc.JArray([sc.AnyOf([sc.JObject({}, None),sc.JNumber([]) ])])
+    assert res.defn == sc.JString([{'minLength':2, 'maxLength':3}])
+def test_top_level_number():
+    input = '''{
+  "$id": "https://example.com/address.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "type": "number"
+}
+'''
+    dic = json.loads(input)
+    res = sc.parse_json_schema(dic)
+    assert res.defn == sc.JNumber([])
+def test_top_level_integer():
+    input = '''{
+  "$id": "https://example.com/address.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "type": "integer"
+}
+'''
+    dic = json.loads(input)
+    res = sc.parse_json_schema(dic)
+    assert res.defn == sc.JInteger([])
+def test_top_level_boolean():
+    input = '''{
+  "$id": "https://example.com/address.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "type": "boolean"
+}
+'''
+    dic = json.loads(input)
+    res = sc.parse_json_schema(dic)
+    assert res.defn == sc.JBoolean([])
+def test_top_level_null():
+    input = '''{
+  "$id": "https://example.com/address.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "type": "null"
+}
+'''
+    dic = json.loads(input)
+    res = sc.parse_json_schema(dic)
+    assert res.defn == sc.JNull([])
+
+
+def test_top_level_object():
+    input = '''{
+  "$id": "https://example.com/address.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "type": "object"
+}
+'''
+    dic = json.loads(input)
+    res = sc.parse_json_schema(dic)
+    assert res.defn == sc.JObject([], False)
+
+def test_top_level_object_with_properties():
+    input = '''{
+  "$id": "https://example.com/address.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "type": "object",
+  "properties":{
+         "type": {
+          "enum": [
+            "text"
+          ]
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        }
+  }
+}
+'''
+    dic = json.loads(input)
+    res = sc.parse_json_schema(dic)
+    assert res.defn == sc.JNamedObject('text', [{'text': (sc.JString([{'minLength':1}]), False)}], False)
+
+def test_top_level_object_with_multiple_properties():
+    input = '''{
+  "$id": "https://example.com/address.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "type": "object",
+  "properties":{
+         "type": {
+          "enum": [
+            "text"
+          ]
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "note": {
+          "type": "number"
+        }
+  }
+}
+'''
+    dic = json.loads(input)
+    res = sc.parse_json_schema(dic)
+    assert res.defn == sc.JNamedObject('text', [{'text': (sc.JString([{'minLength':1}]), False),
+                                                 'note': (sc.JNumber([]), False),
+                                                 }], False)
+
+
+
+def test_top_level_object_with_required():
+    input = '''{
+  "$id": "https://example.com/address.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "type": "object",
+  "properties":{
+         "type": {
+          "enum": [
+            "text"
+          ]
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        }
+  },
+  "required":["text"]
+}
+'''
+    dic = json.loads(input)
+    res = sc.parse_json_schema(dic)
+    assert res.defn == sc.JNamedObject('text', [{'text': (sc.JString([{'minLength':1}]), True)}], False)
+
+def test_top_level_object_with_additionalProperties():
+    input = '''{
+  "$id": "https://example.com/address.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "type": "object",
+  "properties":{
+         "type": {
+          "enum": [
+            "text"
+          ]
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        }
+  },
+  "additionalProperties" : true
+}
+'''
+    dic = json.loads(input)
+    res = sc.parse_json_schema(dic)
+    assert res.defn == sc.JNamedObject('text', [{'text': (sc.JString([{'minLength':1}]), False)}], True)
+
+def test_object_with_enum():
+    input = '''{
+  "$id": "https://example.com/address.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "definitions": {
+    "breakout_mark": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "breakout"
+          ]
+        },
+        "attrs": {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "enum": [
+                "wide",
+                "full-width"
+              ]
+            }
+          },
+          "required": [
+            "mode"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "type",
+        "attrs"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
+'''
+    dic = json.loads(input)
+    res = sc.parse_json_schema(dic)
+    assert res.defn == {"#/definitions/breakout_mark":sc.JNamedObject('breakout',
+                                       [{'attrs': (sc.JNamedObject(None,
+                                                                   [{'mode': (sc.Enum(['wide', 'full-width']), True)}], False), True)}],
+                                       False)}
+
+def test_object_with_enum():
+    input = '''{
+  "$id": "https://example.com/address.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "definitions":{
+      "textColor_mark": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "textColor"
+          ]
+        },
+        "attrs": {
+          "type": "object",
+          "properties": {
+            "color": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            }
+          },
+          "required": [
+            "color"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "type",
+        "attrs"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
+'''
+    dic = json.loads(input)
+    res = sc.parse_json_schema(dic)
+    assert res.defn == {'#/definitions/textColor_mark': sc.JNamedObject('textColor',
+                                                                        [{'attrs': (sc.JNamedObject(None,
+                                                                                                    [{'color': (sc.JString([{'pattern': '^#[0-9a-fA-F]{6}$'}]), True)}], False), True)}], False)}
+
+
+
+
+def test_top_level_object_with_array():
+    input = '''{
+  "$id": "https://example.com/address.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "codeBlock"
+          ]
+        },
+        "content": {
+          "type": "array",
+          "items": {
+            "allOf": [
+              {
+                "$ref": "#/definitions/text_node"
+              }
+            ]
+          }
+        }
+      }
+}
+'''
+    dic = json.loads(input)
+    res = sc.parse_json_schema(dic)
+    assert res.defn == sc.JNamedObject('codeBlock',
+                                       [{'content': (sc.JArray([{'items':sc.AllOf([sc.Ref("#/definitions/text_node")])}]), False)}],False)
+
+
+def test_top_level_object_with_array2():
+    input = '''{
+  "$id": "https://example.com/address.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "codeBlock"
+          ]
+        },
+        "content": {
+          "type": "array",
+          "items": {
+            "allOf": [
+              {
+                "$ref": "#/definitions/text_node"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "marks": {
+                    "type": "array",
+                    "maxItems": 0
+                  }
+                },
+                "additionalProperties": true
+              }
+            ]
+          }
+        }
+      }
+}
+'''
+    dic = json.loads(input)
+    res = sc.parse_json_schema(dic)
+    assert res.defn == sc.JNamedObject('codeBlock',
+       [{'content': (sc.JArray([{'items':sc.AllOf([sc.Ref("#/definitions/text_node"),
+       sc.JNamedObject(None,
+       [{'marks':(sc.JArray([{'maxItems':0}]),False)}], True)
+                                                  ])}]),False)}], False)
+
+
+
+
+
+
+def test_top_level_array():
+    input = '''{
+  "$id": "https://example.com/address.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "type": "array"
+
+}
+'''
+    dic = json.loads(input)
+    res = sc.parse_json_schema(dic)
+    assert res.defn == sc.JArray([])
+
+def test_top_level_array_with_params():
+    input = '''{
+  "$id": "https://example.com/address.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "type": "array",
+  "maxItems": 0
+}
+'''
+    dic = json.loads(input)
+    res = sc.parse_json_schema(dic)
+    assert res.defn == sc.JArray([{"maxItems":0}])
+
+
+def test_top_level_ref():
+    input = '''{
+  "$id": "https://example.com/address.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "$ref" : "#/definitions/top_node",
+  "definitions":{
+     "top_node":{
+       "type":"string"
+     }
+  }
+}
+'''
+    dic = json.loads(input)
+    res = sc.parse_json_schema(dic)
+    assert res.ref == "#/definitions/top_node"
+
+
+def test_simple_definitions():
+    input = '''{
+  "$id": "https://example.com/address.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "$ref" : "#/definitions/top_node",
+  "definitions":{
+     "top_node":{
+       "type":"object"
+     }
+  }
+}
+'''
+    dic = json.loads(input)
+    res = sc.parse_json_schema(dic)
+    assert res.defn == {"#/definitions/top_node":(sc.JObject([], False))}
+
+def test_allOf():
+    input = '''{
+  "$id": "https://example.com/address.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "$ref" : "#/definitions/top_node",
+  "definitions":{
+     "top_node":{
+       "allOf":[
+         {"$ref":"#/definitions/sample"}
+       ]
+     }
+  }
+}
+'''
+    dic = json.loads(input)
+    res = sc.parse_json_schema(dic)
+    assert res.defn == {"#/definitions/top_node": (sc.AllOf([sc.Ref("#/definitions/sample")]))}
+
+def test_anyOf():
+    input = '''{
+  "$id": "https://example.com/address.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "$ref" : "#/definitions/top_node",
+  "definitions":{
+     "top_node":{
+       "anyOf":[]
+     }
+  }
+}
+'''
+    dic = json.loads(input)
+    res = sc.parse_json_schema(dic)
+    assert res.defn == {"#/definitions/top_node": (sc.AnyOf([]))}
+
+def test_anyOf_two_objects():
+    input = '''{
+  "$id": "https://example.com/address.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "$ref" : "#/definitions/top_node",
+  "definitions":{
+    "inlineCard_node": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "inlineCard"
+          ]
+        },
+        "attrs": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "url"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "data": {}
+              },
+              "required": [
+                "data"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "attrs"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
+'''
+    dic = json.loads(input)
+    res = sc.parse_json_schema(dic)
+    assert res.defn == {'#/definitions/inlineCard_node': JNamedObject(name='inlineCard', attributes=[{'attrs': (AnyOf(constraints=[JNamedObject(name=None, attributes=[{'url': (JString(constraints=[]), True)}], additionalProperties=False), JNamedObject(name=None, attributes=[{'data': (None, True)}], additionalProperties=False)]), True)}], additionalProperties=False)}
+
+def test_oneOf():
+    input = '''{
+  "$id": "https://example.com/address.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "$ref" : "#/definitions/top_node",
+  "definitions":{
+     "top_node":{
+       "oneOf":[]
+     }
+  }
+}
+'''
+    dic = json.loads(input)
+    res = sc.parse_json_schema(dic)
+    assert res.defn == {"#/definitions/top_node": (sc.OneOf([]))}
 
 
 def test_ref():
     input = '''{
-    "definitions": {
-      "array1": {
-        "type": "array",
-        "items": {
-          "anyOf":[
-            {"type":"object"},
-            {"type":"number"}
-          ]
-        }
-      }
-   }
+  "$id": "https://example.com/address.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "$ref" : "#/definitions/top_node",
+  "definitions":{
+     "top_node":{
+       "$ref": "#/definitions/nothing"
+     }
+  }
 }
 '''
     dic = json.loads(input)
     res = sc.parse_json_schema(dic)
-    assert res.ref_map['#/definitions/array1'] == sc.JArray([sc.AnyOf([sc.JObject({}, None),sc.JNumber([]) ])])
-
+    assert res.defn == {"#/definitions/top_node": sc.Ref("#/definitions/nothing")}
 

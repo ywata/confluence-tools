@@ -1,3 +1,5 @@
+import logging
+
 import requests
 import json
 from dataclasses import dataclass
@@ -6,12 +8,10 @@ import pprint as pp
 
 
 @dataclass()
-class Schema():
-    json_schema: str
-    namespace: str
-    ref: str
-    definitions:dict # type -> definition
-    ref_map : dict # ref to type
+class JsonSchema():
+    schema:str
+    ref:str
+    defn: object
 
 @dataclass()
 class RestrictionX():
@@ -19,7 +19,12 @@ class RestrictionX():
 
 @dataclass()
 class Condition():
-    condition: dict
+    condition: list
+@dataclass()
+class JNamedObject():
+    name : str
+    attributes : list # of (name, restriction)
+    additionalProperties : bool
 @dataclass()
 class JObject():
     attributes : list # of (name, restriction)
@@ -33,6 +38,9 @@ class JInteger():
 @dataclass()
 class JBoolean():
     constraints : list # of (name, restriction)
+@dataclass()
+class JNull():
+    constraints : list # This should always be []
 
 @dataclass()
 class JArray():
@@ -57,219 +65,179 @@ class Ref():
 class Enum():
     enums : list
 
-def parse_simple_type(typ, val, constructor, defined_keys):
-    assert typ in ['integer', 'number', 'string', 'boolean']
+def parse_simple_type(schema_dict, accept_keys, cnstr):
+    assoc = {}
+    temp_list = ['type', '$id', '$schema', 'description']
+    for k in accept_keys:
+        if k in schema_dict:
+            assoc[k] = schema_dict[k]
+    # check to see if unknown key word is used
+    for key in schema_dict:
+        if key not in accept_keys and key not in temp_list:
+            logging.warning(f"{key} is not handled in {accept_keys}")
+            assert False, f"{key} is not handled in {accept_keys}"
+
+    # TODO: This implementation is is not natural.
+    if len(assoc) == 0:
+        return cnstr([])
+    else:
+        return cnstr([assoc])
+
+
+# ignore_tags != [] iff schema_dict is top level JSON object.
+def parse_string(schema_dict):
+    accept_keys = ['minLength', 'maxLength','pattern']
+    return parse_simple_type(schema_dict, accept_keys, JString)
+
+def parse_number(schema_dict):
+    accept_keys = ['minimum', 'maximum']
+    return parse_simple_type(schema_dict, accept_keys, JNumber)
+
+
+def parse_integer(schema_dict):
+    accept_keys = []
+    return parse_simple_type(schema_dict, accept_keys, JInteger)
+
+
+def parse_null(schema_dict):
+    accept_keys = []
+    return parse_simple_type(schema_dict, accept_keys, JNull)
+
+def parse_boolean(schema_dict):
+    assert schema_dict['type'] == 'boolean'
+    return JBoolean([])
+
+def parse_array(schema_dict, ignore_tags):
+    assert schema_dict['type'] == 'array'
     res = {}
-    for (key, v) in val.items():
-        if key != 'type':
-            res[key] = v
+    for (key, val) in schema_dict.items():
+        if 'type' == key:
+            continue
+        if key in ignore_tags:
+            continue
+        if type(val) == dict: # TODO: this decision might be in parse_schema()
+            res[key] = parse_schema(val,[])
+        else:
+            res[key] = val
+
+    if res == {}: # TODO: Needs more consideration
+        return JArray([])
+    else:
+        return JArray([res])
+
+def parse_enum(schema_dict) -> Enum :
+    pass
+def parse_properties(schema_dict:dict, required, addProp):
+    name = None
+    if 'type' in schema_dict and 'enum' in schema_dict['type']:
+        name = schema_dict['type']['enum'][0]
+    res = {}
+    for (key, val) in schema_dict.items():
+        if key == 'type':
+            continue
+        res[key] = (parse_schema(val, []), key in required)
+
     if res == {}:
-        return constructor([])
+        return JNamedObject(name, [], addProp)
     else:
-        return constructor([res])
+        return JNamedObject(name, [res], addProp)
 
 
-def parse_type(val):
-    if val['type'] == 'object':
-        fields = []
-        #pp.pprint((list(val.keys()), list(val['properties'].keys())))
-        req = []
-        addProp = None
-        if 'required' in val:
-            req = val['required']
-        if 'additionalProperties' in val:
-            addProp = val['additionalProperties']
-
-        fields = {}
-        if 'properties' in val:
-            for (key, constraints) in val['properties'].items():
-                cond = parse_definition(constraints)
-                fields[key] = (cond, key in req)
-
-        return JObject(fields, addProp)
-
-    elif val['type'] == 'array':
-        defined_keys = ['items', 'prefixItems', 'contains', 'minContains', 'maxContains', 'minItems', 'maxItems', 'uniqueItems ']
-        conditions = []
-        for (key, constraints) in val.items():
-            if key == 'type': # skip 'type'
-                continue
-            if type(constraints) == dict:
-                cond = parse_definition(constraints)
-            elif type(constraints) == list:
-                conds = []
-                for c in constraints:
-                    cnst = parse_definition(c)
-                    conds.append(cnst)
-                cond = JArray(conds)
+def parse_object(schema_dict:dict, ignore_tags=[]):
+    #accept_keys = ['properties','required']
+    required, addtionalProp, props = [], False, None
+    if 'properties' in schema_dict:
+        cnstr = JObject
+        if 'required' in schema_dict:
+            required = schema_dict['required']
+        if 'additionalProperties' in schema_dict:
+            addtionalProp = schema_dict['additionalProperties']
+        props = parse_properties(schema_dict['properties'], required, addtionalProp)
+        return props
+    else:
+        new_dict = {}
+        for (key, val) in schema_dict.items():
+            if key not in ignore_tags:
+                new_dict[key] = val
+        if 'type' in new_dict:
+            if new_dict['type'] == 'object':
+                del new_dict['type']
+                if new_dict == {}:
+                    return JObject([], False)
+                else:
+                    return JObject([new_dict], False)
             else:
-                cond = {key: constraints}
-            conditions.append(cond)
-        return JArray(conditions)
-    elif val['type'] == 'string':
-        defined_keys = ['minLength', 'maxLength']
-        res = parse_simple_type(val['type'], val, JString, defined_keys)
-        return res
-    elif val['type'] == 'integer':
-        assert len(val) == 1
-        defined_keys = []
-        res = parse_simple_type(val['type'], val, JInteger, defined_keys)
-        return res
-    elif val['type'] == 'number':
-        defined_keys = ['minumum', 'maxmum', 'exclusiveMinum', 'exclusiveMaxmum']
-        res = parse_simple_type(val['type'], val, JNumber, defined_keys)
-        return res
-    elif val['type'] == 'boolean':
-        assert len(val) == 1
-        defined_keys = []
-        res = parse_simple_type(val['type'], val, JBoolean, defined_keys)
-        return res
-
-    else:
-        return Condition(val)
-        #pp.pprint(val)
-
-def parse_definition(val):
-    assert(type(val) == dict)
-    if 'type' in val:
-        #assert val['type'] == 'object' or val['type'] == 'array'
-        res = parse_type(val)
-        return res
-    elif len(val) == 1 and ('allOf' in val or 'anyOf' in val):
-        constructor = None
-        tag = None
-        if 'allOf' in val:
-            constructor = AllOf
-            tag = 'allOf'
-        elif 'anyOf' in val:
-            constructor = AnyOf
-            tag = 'anyOf'
-        constraints = []
-        for c in val[tag]:
-            constraint = parse_definition(c)
-            constraints.append(constraint)
-        return constructor(constraints)
-    elif val == {}:
-        return {}
-    elif len(val) == 1 and 'enum' in val:
-        return Enum(val['enum'])
-    elif len(val) == 1 and '$ref' in val:
-        return Ref(val['$ref'])
-    else:
-        pp.pprint(val)
+                res = parse_schema(new_dict)
 
 
-def parse_definitions(defs:dict):
-    definitions = {}
-    ref_map = {}
-    for (key, val) in defs.items():
-        ref_name = f"#/definitions/{key}"
-        defn = parse_definition(val)
-        typ = None
-        match defn :
-            case JObject(attr, addProp):
-                typ = ref_name
-            case JArray(_):
-                typ = ref_name
-            case AllOf(_):
-                typ = ref_name
-            case AnyOf(_):
-                typ = ref_name
-            case JString(_):
-                typ = ref_name
-            case JInteger(_):
-                typ = ref_name
-            case JNumber(_):
-                typ = ref_name
-            case JBoolean(_):
-                typ = ref_name
-            case _:
-                assert False, "This case should not happen."
-        definitions[typ] = defn
-        ref_map[ref_name] = defn
-    return (definitions, ref_map)
+def parse_predicate(schema_lst: dict, cnstr):
+    res = []
+    for sc in schema_lst:
+        res.append(parse_schema(sc, []))
+    return cnstr(res)
 
-def parse_json_schema(json_schema_defn):
-    schema_name, description, definitions, ref_map = None, None, None, None
-    ref_name = None
-    if '$schema' in json_schema_defn:
-        schema_name = json_schema_defn['$schema']
-    if "$ref" in json_schema_defn:
-        ref_name = json_schema_defn['$ref']
-    if "description" in json_schema_defn:
-        description = json_schema_defn['description']
-    if 'definitions' in json_schema_defn:
-        (definitions, ref_map) = parse_definitions(json_schema_defn['definitions'])
+def parse_schema(schema_dict: dict, ignore_tags):
+    assert type(schema_dict) == dict
+    res = None
+    if 'type' in schema_dict:
+        if schema_dict['type'] == 'string':
+            res = parse_string(schema_dict)
+        elif schema_dict['type'] == 'array':
+            res = parse_array(schema_dict, ignore_tags)
+        elif schema_dict['type'] == 'number':
+            res = parse_number(schema_dict)
+        elif schema_dict['type'] == 'boolean':
+            res = parse_boolean(schema_dict)
+        elif schema_dict['type'] == 'integer':
+            res = parse_integer(schema_dict)
+        elif schema_dict['type'] == 'null':
+            res = parse_null(schema_dict)
+        elif schema_dict['type'] == 'object':
+            res = parse_object(schema_dict, ignore_tags)
+        else:
+            return JObject([], None)
+    elif 'allOf' in schema_dict:
+        res = parse_predicate(schema_dict['allOf'], AllOf)
+    elif 'anyOf' in schema_dict:
+        res = parse_predicate(schema_dict['anyOf'], AnyOf)
+    elif 'oneOf' in schema_dict:
+        res = parse_predicate(schema_dict['oneOf'], OneOf)
+    elif 'not' in schema_dict:
+        pass # not implemented]
+    elif 'enum' in schema_dict:
+        res = Enum(schema_dict['enum'])
+    elif '$ref' in schema_dict:
+        res = Ref(schema_dict['$ref'])
 
-    return Schema(schema_name, "", ref_name, definitions, ref_map)
+    return res
 
 
-def generate_adf_processor():
-    url = "https://unpkg.com/@atlaskit/adf-schema@25.2.3/dist/json-schema/v1/full.json"
-    headers = {
-        "Accept": "application/json"
-    }
-    request_url = f"{url}"
-    resp = requests.request(
-        "GET",
-        request_url,
-        headers=headers,
-    )
-    if resp.status_code != 200:
-        return None
+any_keys = ['type', 'enum', 'id']
 
-    schema_dic = json.loads(resp.text)
-    try:
-        data_class = parse_json_schema(schema_dic)
-        return
-    except Exception as ex:
-        print(ex)
-        import sys
-        sys.exit(1)
+def parse_json_schema(json_schema_dict):
+    id, schema, descr, ref = None, None, None, None
+    json_schema = JsonSchema(None, None, None)
 
-def get_dependencies(schema, start, top_level, tmp:list):
-    match start:
-        case JObject(obj, _):
-            for (p, v) in obj.items():
-                rs = get_dependencies(schema, v, False, [])
-                tmp = tmp + rs
-            return tmp
-        case (JObject(obj, _), _):
-            for (p, v) in obj.items():
-                rs = get_dependencies(schema, v, False, [])
-                tmp = tmp + rs
-            return tmp
+    top_level_items = [('$id', lambda scm: scm),
+                       ('$schema',
+                        lambda scm:
+                            JsonSchema(json_schema_dict['$schema'],scm.ref, scm.defn)),
+                       ('description', lambda scm:scm),
+                       ('$ref', lambda scm:JsonSchema(scm.schema, json_schema_dict['$ref'],scm.defn))]
+    ignore_tags = list(map(lambda pair: pair[0], top_level_items))
+    jschema = json_schema
+    for (tag, fun) in top_level_items:
+        if tag in json_schema_dict:
+            jschema = fun(jschema)
+    if 'definitions' in json_schema_dict:
+        defn = {}
+        for (key, val) in json_schema_dict['definitions'].items():
+            name = f"#/definitions/{key}"
+            res = parse_schema(val, [])
+            defn[name] = res
 
-        case JArray(arr):
-            for a in arr:
-                rs = get_dependencies(schema, a, False, [])
-                tmp = tmp + rs
-            return tmp
-        case (JArray(arr), _):
-            for a in arr:
-                rs = get_dependencies(schema, a, False, [])
-                tmp = tmp + rs
-            return tmp
-        case AnyOf(arr):
-            ()
-            for a in arr:
-                rs = get_dependencies(schema, a, False, [])
-                tmp = tmp + rs
-            return tmp
-        case AllOf(arr):
-            for a in arr:
-                rs = get_dependencies(schema, a, False, [])
-                tmp = tmp + rs
-            return tmp
-        case Ref(ar):
-            return tmp + [ar]
-        case d:
-            if type(d) == dict:
-                for (k, val) in d.items():
-                    rs = get_dependencies(schema, val, False, [])
-                    tmp = tmp + rs
-                return tmp
-            else:
-                return []
-            return []
-
+        jschema.defn = defn
+    elif 'type' in json_schema_dict:
+        res = parse_schema(json_schema_dict, ignore_tags)
+        jschema.defn = res
+    return jschema
