@@ -126,7 +126,12 @@ def parse_array(schema_dict, ignore_tags):
         return JArray([res])
 
 def parse_enum(schema_dict) -> Enum :
-    pass
+    assert 'enum' in schema_dict
+    return Enum(schema_dict['enum'])
+def parse_ref(schema_dict) -> Ref :
+    assert '$ref' in schema_dict
+    return Ref(schema_dict['$ref'])
+
 def parse_properties(schema_dict:dict, required, addProp):
     name = None
     if 'type' in schema_dict and 'enum' in schema_dict['type']:
@@ -205,9 +210,10 @@ def parse_schema(schema_dict: dict, ignore_tags):
     elif 'not' in schema_dict:
         pass # not implemented]
     elif 'enum' in schema_dict:
-        res = Enum(schema_dict['enum'])
+        res = parse_enum(schema_dict)
     elif '$ref' in schema_dict:
-        res = Ref(schema_dict['$ref'])
+        res = parse_ref(schema_dict)
+
 
     return res
 
