@@ -31,16 +31,16 @@ class JObject():
     additionalProperties : bool
 @dataclass()
 class JNumber():
-    constraints : list # of (name, restriction)
+    constraints : dict # of (name, restriction)
 @dataclass()
 class JInteger():
-    constraints : list # of (name, restriction)
+    constraints : dict # of (name, restriction)
 @dataclass()
 class JBoolean():
-    constraints : list # of (name, restriction)
+    constraints : dict # of (name, restriction)
 @dataclass()
 class JNull():
-    constraints : list # This should always be []
+    constraints : dict # This should always be []
 
 @dataclass()
 class JArray():
@@ -77,11 +77,8 @@ def parse_simple_type(schema_dict, accept_keys, cnstr):
             logging.warning(f"{key} is not handled in {accept_keys}")
             assert False, f"{key} is not handled in {accept_keys}"
 
-    # TODO: This implementation is is not natural.
-    if len(assoc) == 0:
-        return cnstr([])
-    else:
-        return cnstr([assoc])
+    return cnstr(assoc)
+
 
 
 # ignore_tags != [] iff schema_dict is top level JSON object.
@@ -104,8 +101,9 @@ def parse_null(schema_dict):
     return parse_simple_type(schema_dict, accept_keys, JNull)
 
 def parse_boolean(schema_dict):
-    assert schema_dict['type'] == 'boolean'
-    return JBoolean([])
+    accept_keys = []
+    return parse_simple_type(schema_dict, accept_keys, JBoolean)
+
 
 def parse_array(schema_dict, ignore_tags):
     assert schema_dict['type'] == 'array'
@@ -119,11 +117,7 @@ def parse_array(schema_dict, ignore_tags):
             res[key] = parse_schema(val,[])
         else:
             res[key] = val
-
-    if res == {}: # TODO: Needs more consideration
-        return JArray([])
-    else:
-        return JArray([res])
+    return JArray(res)
 
 def parse_enum(schema_dict) -> Enum :
     assert 'enum' in schema_dict

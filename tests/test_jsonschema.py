@@ -15,7 +15,7 @@ def test_top_level_string():
 '''
     dic = json.loads(input)
     res = sc.parse_json_schema(dic)
-    assert res.defn == sc.JString([{'minLength':2, 'maxLength':3}])
+    assert res.defn == sc.JString({'minLength':2, 'maxLength':3})
 def test_top_level_number():
     input = '''{
   "$id": "https://example.com/address.schema.json",
@@ -26,7 +26,7 @@ def test_top_level_number():
 '''
     dic = json.loads(input)
     res = sc.parse_json_schema(dic)
-    assert res.defn == sc.JNumber([])
+    assert res.defn == sc.JNumber({})
 def test_top_level_integer():
     input = '''{
   "$id": "https://example.com/address.schema.json",
@@ -37,7 +37,7 @@ def test_top_level_integer():
 '''
     dic = json.loads(input)
     res = sc.parse_json_schema(dic)
-    assert res.defn == sc.JInteger([])
+    assert res.defn == sc.JInteger({})
 def test_top_level_boolean():
     input = '''{
   "$id": "https://example.com/address.schema.json",
@@ -48,7 +48,7 @@ def test_top_level_boolean():
 '''
     dic = json.loads(input)
     res = sc.parse_json_schema(dic)
-    assert res.defn == sc.JBoolean([])
+    assert res.defn == sc.JBoolean({})
 def test_top_level_null():
     input = '''{
   "$id": "https://example.com/address.schema.json",
@@ -59,7 +59,7 @@ def test_top_level_null():
 '''
     dic = json.loads(input)
     res = sc.parse_json_schema(dic)
-    assert res.defn == sc.JNull([])
+    assert res.defn == sc.JNull({})
 
 
 def test_top_level_object():
@@ -95,7 +95,7 @@ def test_top_level_object_with_properties():
 '''
     dic = json.loads(input)
     res = sc.parse_json_schema(dic)
-    assert res.defn == sc.JNamedObject('text', {'text': (sc.JString([{'minLength':1}]), False)}, False)
+    assert res.defn == sc.JNamedObject('text', {'text': (sc.JString({'minLength':1}), False)}, False)
 
 def test_top_level_object_with_multiple_properties():
     input = '''{
@@ -121,8 +121,8 @@ def test_top_level_object_with_multiple_properties():
 '''
     dic = json.loads(input)
     res = sc.parse_json_schema(dic)
-    assert res.defn == sc.JNamedObject('text', {'text': (sc.JString([{'minLength':1}]), False),
-                                                 'note': (sc.JNumber([]), False),
+    assert res.defn == sc.JNamedObject('text', {'text': (sc.JString({'minLength':1}), False),
+                                                 'note': (sc.JNumber({}), False),
                                                  }, False)
 
 
@@ -149,7 +149,7 @@ def test_top_level_object_with_required():
 '''
     dic = json.loads(input)
     res = sc.parse_json_schema(dic)
-    assert res.defn == sc.JNamedObject('text', {'text': (sc.JString([{'minLength':1}]), True)}, False)
+    assert res.defn == sc.JNamedObject('text', {'text': (sc.JString({'minLength':1}), True)}, False)
 
 def test_top_level_object_with_additionalProperties():
     input = '''{
@@ -173,7 +173,7 @@ def test_top_level_object_with_additionalProperties():
 '''
     dic = json.loads(input)
     res = sc.parse_json_schema(dic)
-    assert res.defn == sc.JNamedObject('text', {'text': (sc.JString([{'minLength':1}]), False)}, True)
+    assert res.defn == sc.JNamedObject('text', {'text': (sc.JString({'minLength':1}), False)}, True)
 
 def test_object_with_enum():
     input = '''{
@@ -262,7 +262,7 @@ def test_object_with_enum():
     res = sc.parse_json_schema(dic)
     assert res.defn == {'#/definitions/textColor_mark': sc.JNamedObject('textColor',
                                                                         {'attrs': (sc.JNamedObject(None,
-                                                                                                    {'color': (sc.JString([{'pattern': '^#[0-9a-fA-F]{6}$'}]), True)}, False), True)}, False)}
+                                                                                                    {'color': (sc.JString({'pattern': '^#[0-9a-fA-F]{6}$'}), True)}, False), True)}, False)}
 
 
 
@@ -295,7 +295,7 @@ def test_top_level_object_with_array():
     dic = json.loads(input)
     res = sc.parse_json_schema(dic)
     assert res.defn == sc.JNamedObject('codeBlock',
-                                       {'content': (sc.JArray([{'items':sc.AllOf([sc.Ref("#/definitions/text_node")])}]), False)},False)
+                                       {'content': (sc.JArray({'items':sc.AllOf([sc.Ref("#/definitions/text_node")])}), False)},False)
 
 
 def test_top_level_object_with_array2():
@@ -336,10 +336,10 @@ def test_top_level_object_with_array2():
     dic = json.loads(input)
     res = sc.parse_json_schema(dic)
     assert res.defn == sc.JNamedObject('codeBlock',
-       {'content': (sc.JArray([{'items':sc.AllOf([sc.Ref("#/definitions/text_node"),
+       {'content': (sc.JArray({'items':sc.AllOf([sc.Ref("#/definitions/text_node"),
        sc.JNamedObject(None,
-       {'marks':(sc.JArray([{'maxItems':0}]),False)}, True)
-                                                  ])}]),False)}, False)
+       {'marks':(sc.JArray({'maxItems':0}),False)}, True)
+                                                  ])}),False)}, False)
 
 
 
@@ -357,7 +357,7 @@ def test_top_level_array():
 '''
     dic = json.loads(input)
     res = sc.parse_json_schema(dic)
-    assert res.defn == sc.JArray([])
+    assert res.defn == sc.JArray({})
 
 def test_top_level_array_with_params():
     input = '''{
@@ -370,7 +370,7 @@ def test_top_level_array_with_params():
 '''
     dic = json.loads(input)
     res = sc.parse_json_schema(dic)
-    assert res.defn == sc.JArray([{"maxItems":0}])
+    assert res.defn == sc.JArray({"maxItems":0})
 
 
 def test_top_level_ref():
@@ -499,7 +499,7 @@ def test_anyOf_two_objects():
     res = sc.parse_json_schema(dic)
     assert res.defn == {'#/definitions/inlineCard_node':
                             JNamedObject('inlineCard',
-                            {'attrs': (AnyOf([JNamedObject(None,  {'url': (JString(constraints=[]), True)}, additionalProperties=False),
+                            {'attrs': (AnyOf([JNamedObject(None,  {'url': (JString(constraints={}), True)}, additionalProperties=False),
                             JNamedObject(None, {'data': (None, True)}, False)]), True)}, False)}
 
 def test_oneOf():
