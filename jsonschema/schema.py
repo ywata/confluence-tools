@@ -23,11 +23,11 @@ class Condition():
 @dataclass()
 class JNamedObject():
     name : str
-    attributes : list # of (name, restriction)
+    attributes : dict # of (name, restriction)
     additionalProperties : bool
 @dataclass()
 class JObject():
-    attributes : list # of (name, restriction)
+    attributes : dict # of (name, restriction)
     additionalProperties : bool
 @dataclass()
 class JNumber():
@@ -142,10 +142,7 @@ def parse_properties(schema_dict:dict, required, addProp):
             continue
         res[key] = (parse_schema(val, []), key in required)
 
-    if res == {}:
-        return JNamedObject(name, [], addProp)
-    else:
-        return JNamedObject(name, [res], addProp)
+    return JNamedObject(name, res, addProp)
 
 
 def parse_object(schema_dict:dict, ignore_tags=[]):
@@ -167,10 +164,7 @@ def parse_object(schema_dict:dict, ignore_tags=[]):
         if 'type' in new_dict:
             if new_dict['type'] == 'object':
                 del new_dict['type']
-                if new_dict == {}:
-                    return JObject([], False)
-                else:
-                    return JObject([new_dict], False)
+                return JObject(new_dict, False)
             else:
                 res = parse_schema(new_dict)
 
