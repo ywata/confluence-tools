@@ -2,64 +2,90 @@ import logging
 from dataclasses import dataclass
 
 
-
 @dataclass()
 class JsonSchema():
-    schema:str
-    ref:str
+    schema: str
+    ref: str
     defn: object
+
 
 @dataclass()
 class RestrictionX():
     pass
 
+
 @dataclass()
 class Condition():
     condition: list
+
+
 @dataclass()
 class JNamedObject():
-    name : str
-    attributes : dict # of (name, restriction)
-    additionalProperties : bool
+    name: str
+    attributes: dict  # of (name, restriction)
+    additionalProperties: bool
+
+
 @dataclass()
 class JObject():
-    attributes : dict # of (name, restriction)
-    additionalProperties : bool
+    attributes: dict  # of (name, restriction)
+    additionalProperties: bool
+
+
 @dataclass()
 class JNumber():
-    constraints : dict # of (name, restriction)
+    constraints: dict  # of (name, restriction)
+
+
 @dataclass()
 class JInteger():
-    constraints : dict # of (name, restriction)
+    constraints: dict  # of (name, restriction)
+
+
 @dataclass()
 class JBoolean():
-    constraints : dict # of (name, restriction)
+    constraints: dict  # of (name, restriction)
+
+
 @dataclass()
 class JNull():
-    constraints : dict # This should always be []
+    constraints: dict  # This should always be []
+
 
 @dataclass()
 class JArray():
-    constraints : dict
+    constraints: dict
+
+
 @dataclass()
 class JString():
-    constraints : dict
+    constraints: dict
+
+
 @dataclass()
 class AllOf():
-    constraints : list # of Restrictions
+    constraints: list  # of Restrictions
+
+
 @dataclass()
 class AnyOf():
-    constraints : list # of Restrictions
+    constraints: list  # of Restrictions
+
+
 @dataclass()
 class OneOf():
-    constraints : list # of Restrictions
+    constraints: list  # of Restrictions
+
 
 @dataclass()
 class Ref():
-    ref : str
+    ref: str
+
+
 @dataclass()
 class Enum():
-    enums : list
+    enums: list
+
 
 def parse_simple_type(schema_dict, accept_keys, cnstr):
     assoc = {}
@@ -76,11 +102,11 @@ def parse_simple_type(schema_dict, accept_keys, cnstr):
     return cnstr(assoc)
 
 
-
 # ignore_tags != [] iff schema_dict is top level JSON object.
 def parse_string(schema_dict):
-    accept_keys = ['minLength', 'maxLength','pattern']
+    accept_keys = ['minLength', 'maxLength', 'pattern']
     return parse_simple_type(schema_dict, accept_keys, JString)
+
 
 def parse_number(schema_dict):
     accept_keys = ['minimum', 'maximum']
@@ -96,6 +122,7 @@ def parse_null(schema_dict):
     accept_keys = []
     return parse_simple_type(schema_dict, accept_keys, JNull)
 
+
 def parse_boolean(schema_dict):
     accept_keys = []
     return parse_simple_type(schema_dict, accept_keys, JBoolean)
@@ -109,20 +136,24 @@ def parse_array(schema_dict, ignore_tags):
             continue
         if key in ignore_tags:
             continue
-        if type(val) == dict: # TODO: this decision might be in parse_schema()
-            res[key] = parse_schema(val,[])
+        if type(val) == dict:  # TODO: this decision might be in parse_schema()
+            res[key] = parse_schema(val, [])
         else:
             res[key] = val
     return JArray(res)
 
-def parse_enum(schema_dict) -> Enum :
+
+def parse_enum(schema_dict) -> Enum:
     assert 'enum' in schema_dict
     return Enum(schema_dict['enum'])
-def parse_ref(schema_dict) -> Ref :
+
+
+def parse_ref(schema_dict) -> Ref:
     assert '$ref' in schema_dict
     return Ref(schema_dict['$ref'])
 
-def parse_properties(schema_dict:dict, required, addProp):
+
+def parse_properties(schema_dict: dict, required, addProp):
     name = None
     if 'type' in schema_dict and 'enum' in schema_dict['type']:
         name = schema_dict['type']['enum'][0]
@@ -137,8 +168,9 @@ def parse_properties(schema_dict:dict, required, addProp):
     else:
         return JObject(res, addProp)
 
-def parse_object(schema_dict:dict, ignore_tags=[]):
-    #accept_keys = ['properties','required']
+
+def parse_object(schema_dict: dict, ignore_tags=[]):
+    # accept_keys = ['properties','required']
     required, addtionalProp, props = [], False, None
     if 'properties' in schema_dict:
         cnstr = JObject
@@ -158,7 +190,7 @@ def parse_object(schema_dict:dict, ignore_tags=[]):
                 del new_dict['type']
                 return JObject(new_dict, False)
             else:
-                res = parse_schema(new_dict,[])
+                res = parse_schema(new_dict, [])
 
 
 def parse_predicate(schema_lst: dict, cnstr):
@@ -166,6 +198,7 @@ def parse_predicate(schema_lst: dict, cnstr):
     for sc in schema_lst:
         res.append(parse_schema(sc, []))
     return cnstr(res)
+
 
 def parse_schema(schema_dict: dict, ignore_tags):
     assert type(schema_dict) == dict
@@ -194,17 +227,17 @@ def parse_schema(schema_dict: dict, ignore_tags):
     elif 'oneOf' in schema_dict:
         res = parse_predicate(schema_dict['oneOf'], OneOf)
     elif 'not' in schema_dict:
-        pass # not implemented]
+        pass  # not implemented]
     elif 'enum' in schema_dict:
         res = parse_enum(schema_dict)
     elif '$ref' in schema_dict:
         res = parse_ref(schema_dict)
 
-
     return res
 
 
 any_keys = ['type', 'enum', 'id']
+
 
 def parse_json_schema(json_schema_dict):
     id, schema, descr, ref = None, None, None, None
@@ -213,9 +246,9 @@ def parse_json_schema(json_schema_dict):
     top_level_items = [('$id', lambda scm: scm),
                        ('$schema',
                         lambda scm:
-                            JsonSchema(json_schema_dict['$schema'],scm.ref, scm.defn)),
-                       ('description', lambda scm:scm),
-                       ('$ref', lambda scm:JsonSchema(scm.schema, json_schema_dict['$ref'],scm.defn))]
+                        JsonSchema(json_schema_dict['$schema'], scm.ref, scm.defn)),
+                       ('description', lambda scm: scm),
+                       ('$ref', lambda scm: JsonSchema(scm.schema, json_schema_dict['$ref'], scm.defn))]
     ignore_tags = list(map(lambda pair: pair[0], top_level_items))
     jschema = json_schema
     for (tag, fun) in top_level_items:
