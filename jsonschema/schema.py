@@ -136,8 +136,10 @@ def parse_array(schema_dict, ignore_tags):
             continue
         if key in ignore_tags:
             continue
-        if type(val) == dict:  # TODO: this decision might be in parse_schema()
+        if type(val) == dict:
             res[key] = parse_schema(val, [])
+        elif type(val) == list:
+            res[key] = list(map(lambda v:parse_schema(v, []), val))
         else:
             res[key] = val
     return JArray(res)
@@ -196,7 +198,8 @@ def parse_object(schema_dict: dict, ignore_tags=[]):
 def parse_predicate(schema_lst: dict, cnstr):
     res = []
     for sc in schema_lst:
-        res.append(parse_schema(sc, []))
+        ret = parse_schema(sc, [])
+        res.append(ret)
     return cnstr(res)
 
 
@@ -266,3 +269,58 @@ def parse_json_schema(json_schema_dict):
         res = parse_schema(json_schema_dict, ignore_tags)
         jschema.defn = res
     return jschema
+
+def map_over_dict(d: dict, f) -> dict:
+    res = {}
+    for (key, val) in d.items():
+        res[key] = f(val)
+    return res
+def replace_ref(val: dict, schema:JsonSchema) -> dict:
+    match val:
+        case JObject(props, addProp):
+            res = replace_ref(props, schema)
+            return JObject(res, addProp)
+        case JNamedObject(name, props, addProp):
+            res = replace_ref(props, schema)
+            return JNamedObject(name, res, addProp)
+        case JArray(props):
+            res = replace_ref(props, schema)
+            return JArray(res)
+        case JString(props):
+            return val
+        case JNumber(props):
+            return val
+        case JInteger(props):
+            return val
+        case JBoolean(props):
+            return val
+        case JNull(props):
+            return val
+        case Enum(props):
+            return val
+        case AnyOf(ls):
+            return AnyOf(list(map(lambda x: replace_ref(x, schema), ls)))
+        case AllOf(ls):
+            return AllOf(list(map(lambda x: replace_ref(x, schema), ls)))
+        case OneOf(ls):
+            return OneOf(list(map(lambda x: replace_ref(x, schema), ls)))
+        case Ref(ref):
+            return schema.defn[ref]
+        case {}:
+            for (key, v) in val.items():
+                val[key] = replace_ref(v, schema)
+            return val
+        case (JArray(props), addProp):
+            res = replace_ref(props, schema)
+            return (JArray(res), addProp)
+        case any:
+            return any
+
+
+def normalize_schema(schema: JsonSchema) -> JsonSchema:
+    if schema.defn:
+        for (key, val) in schema.defn.items():
+            schema.defn[key] = replace_ref(val, schema)
+        return schema
+    else:
+        return schema

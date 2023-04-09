@@ -404,6 +404,91 @@ def test_top_level_ref():
     assert res.ref == "#/definitions/top_node"
 
 
+def test_ref_in_any():
+    input = '''{
+  "$id": "http://go.atlassian.com/adf-json-schema",
+  "$schema": "https://json-schema.org/draft-04/schema",
+  "description": "Schema for Atlassian Document Format.",
+  "$ref" : "#/definitions/top_node",
+  "definitions":{
+     "top_node":{
+       "anyOf":[{"$ref":"#/definitions/any_node"}]
+     }
+  }
+}
+'''
+    dic = json.loads(input)
+    res = sc.parse_json_schema(dic)
+    assert res.defn == {"#/definitions/top_node": (sc.AnyOf([Ref("#/definitions/any_node")]))}
+
+
+def test_ref_deep_in_array():
+    input = '''{
+  "$id": "http://go.atlassian.com/adf-json-schema",
+  "$schema": "https://json-schema.org/draft-04/schema",
+  "description": "Schema for Atlassian Document Format.",
+  "$ref" : "#/definitions/top_node",
+  "definitions":{
+    "taskList_node": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "taskList"
+          ]
+        },
+        "content": {
+          "type": "array",
+          "items": [
+            {
+              "$ref": "#/definitions/taskItem_node"
+            },
+            {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/taskItem_node"
+                },
+                {
+                  "$ref": "#/definitions/taskList_node"
+                }
+              ]
+            }
+          ],
+          "minItems": 1
+        },
+        "attrs": {
+          "type": "object",
+          "properties": {
+            "localId": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "localId"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "type",
+        "content",
+        "attrs"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
+'''
+    dic = json.loads(input)
+    res = sc.parse_json_schema(dic)
+    assert res.defn == {'#/definitions/taskList_node': JNamedObject('taskList', {'content': (JArray({
+        'items': [Ref(ref='#/definitions/taskItem_node'),
+                  AnyOf(constraints=[Ref('#/definitions/taskItem_node'), Ref('#/definitions/taskList_node')])],
+        'minItems': 1}), True), 'attrs': (
+    JObject({'localId': (JString(constraints={}), True)}, False), True)}, False)}
+
+
+
 def test_simple_definitions():
     input = '''{
   "$id": "http://go.atlassian.com/adf-json-schema",
