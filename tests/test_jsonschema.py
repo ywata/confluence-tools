@@ -5,9 +5,9 @@ import jsonschema.schema as sc
 from jsonschema.schema import *
 def test_top_level_string():
     input = '''{
-  "$id": "https://example.com/address.schema.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "$id": "http://go.atlassian.com/adf-json-schema",
+  "$schema": "https://json-schema.org/draft-04/schema",
+  "description": "Schema for Atlassian Document Format.",
   "type": "string",
   "minLength": 2,
   "maxLength": 3
@@ -18,9 +18,9 @@ def test_top_level_string():
     assert res.defn == sc.JString({'minLength':2, 'maxLength':3})
 def test_top_level_number():
     input = '''{
-  "$id": "https://example.com/address.schema.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "$id": "http://go.atlassian.com/adf-json-schema",
+  "$schema": "https://json-schema.org/draft-04/schema",
+  "description": "Schema for Atlassian Document Format.",
   "type": "number"
 }
 '''
@@ -29,9 +29,9 @@ def test_top_level_number():
     assert res.defn == sc.JNumber({})
 def test_top_level_integer():
     input = '''{
-  "$id": "https://example.com/address.schema.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "$id": "http://go.atlassian.com/adf-json-schema",
+  "$schema": "https://json-schema.org/draft-04/schema",
+  "description": "Schema for Atlassian Document Format.",
   "type": "integer"
 }
 '''
@@ -40,9 +40,9 @@ def test_top_level_integer():
     assert res.defn == sc.JInteger({})
 def test_top_level_boolean():
     input = '''{
-  "$id": "https://example.com/address.schema.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "$id": "http://go.atlassian.com/adf-json-schema",
+  "$schema": "https://json-schema.org/draft-04/schema",
+  "description": "Schema for Atlassian Document Format.",
   "type": "boolean"
 }
 '''
@@ -51,9 +51,9 @@ def test_top_level_boolean():
     assert res.defn == sc.JBoolean({})
 def test_top_level_null():
     input = '''{
-  "$id": "https://example.com/address.schema.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "$id": "http://go.atlassian.com/adf-json-schema",
+  "$schema": "https://json-schema.org/draft-04/schema",
+  "description": "Schema for Atlassian Document Format.",
   "type": "null"
 }
 '''
@@ -64,9 +64,9 @@ def test_top_level_null():
 
 def test_top_level_object():
     input = '''{
-  "$id": "https://example.com/address.schema.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "$id": "http://go.atlassian.com/adf-json-schema",
+  "$schema": "https://json-schema.org/draft-04/schema",
+  "description": "Schema for Atlassian Document Format.",
   "type": "object"
 }
 '''
@@ -76,9 +76,9 @@ def test_top_level_object():
 
 def test_top_level_object_with_properties():
     input = '''{
-  "$id": "https://example.com/address.schema.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "$id": "http://go.atlassian.com/adf-json-schema",
+  "$schema": "https://json-schema.org/draft-04/schema",
+  "description": "Schema for Atlassian Document Format.",
   "type": "object",
   "properties":{
          "type": {
@@ -99,9 +99,9 @@ def test_top_level_object_with_properties():
 
 def test_top_level_object_with_multiple_properties():
     input = '''{
-  "$id": "https://example.com/address.schema.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "$id": "http://go.atlassian.com/adf-json-schema",
+  "$schema": "https://json-schema.org/draft-04/schema",
+  "description": "Schema for Atlassian Document Format.",
   "type": "object",
   "properties":{
          "type": {
@@ -129,9 +129,9 @@ def test_top_level_object_with_multiple_properties():
 
 def test_top_level_object_with_required():
     input = '''{
-  "$id": "https://example.com/address.schema.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "$id": "http://go.atlassian.com/adf-json-schema",
+  "$schema": "https://json-schema.org/draft-04/schema",
+  "description": "Schema for Atlassian Document Format.",
   "type": "object",
   "properties":{
          "type": {
@@ -153,9 +153,9 @@ def test_top_level_object_with_required():
 
 def test_top_level_object_with_additionalProperties():
     input = '''{
-  "$id": "https://example.com/address.schema.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "$id": "http://go.atlassian.com/adf-json-schema",
+  "$schema": "https://json-schema.org/draft-04/schema",
+  "description": "Schema for Atlassian Document Format.",
   "type": "object",
   "properties":{
          "type": {
@@ -177,9 +177,9 @@ def test_top_level_object_with_additionalProperties():
 
 def test_object_with_enum():
     input = '''{
-  "$id": "https://example.com/address.schema.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "$id": "http://go.atlassian.com/adf-json-schema",
+  "$schema": "https://json-schema.org/draft-04/schema",
+  "description": "Schema for Atlassian Document Format.",
   "definitions": {
     "breakout_mark": {
       "type": "object",
@@ -222,9 +222,9 @@ def test_object_with_enum():
 
 def test_object_with_enum():
     input = '''{
-  "$id": "https://example.com/address.schema.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "$id": "http://go.atlassian.com/adf-json-schema",
+  "$schema": "https://json-schema.org/draft-04/schema",
+  "description": "Schema for Atlassian Document Format.",
   "definitions":{
       "textColor_mark": {
       "type": "object",
@@ -267,9 +267,9 @@ def test_object_with_enum():
 
 def test_top_level_object_with_array():
     input = '''{
-  "$id": "https://example.com/address.schema.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "$id": "http://go.atlassian.com/adf-json-schema",
+  "$schema": "https://json-schema.org/draft-04/schema",
+  "description": "Schema for Atlassian Document Format.",
   "type": "object",
       "properties": {
         "type": {
@@ -298,9 +298,9 @@ def test_top_level_object_with_array():
 
 def test_top_level_object_with_array2():
     input = '''{
-  "$id": "https://example.com/address.schema.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "$id": "http://go.atlassian.com/adf-json-schema",
+  "$schema": "https://json-schema.org/draft-04/schema",
+  "description": "Schema for Atlassian Document Format.",
   "type": "object",
       "properties": {
         "type": {
@@ -345,9 +345,9 @@ def test_top_level_object_with_array2():
 
 def test_top_level_array():
     input = '''{
-  "$id": "https://example.com/address.schema.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "$id": "http://go.atlassian.com/adf-json-schema",
+  "$schema": "https://json-schema.org/draft-04/schema",
+  "description": "Schema for Atlassian Document Format.",
   "type": "array"
 
 }
@@ -358,9 +358,9 @@ def test_top_level_array():
 
 def test_top_level_array_with_params():
     input = '''{
-  "$id": "https://example.com/address.schema.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "$id": "http://go.atlassian.com/adf-json-schema",
+  "$schema": "https://json-schema.org/draft-04/schema",
+  "description": "Schema for Atlassian Document Format.",
   "type": "array",
   "maxItems": 0
 }
@@ -372,9 +372,9 @@ def test_top_level_array_with_params():
 
 def test_top_level_ref():
     input = '''{
-  "$id": "https://example.com/address.schema.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "$id": "http://go.atlassian.com/adf-json-schema",
+  "$schema": "https://json-schema.org/draft-04/schema",
+  "description": "Schema for Atlassian Document Format.",
   "$ref" : "#/definitions/top_node",
   "definitions":{
      "top_node":{
@@ -390,9 +390,9 @@ def test_top_level_ref():
 
 def test_simple_definitions():
     input = '''{
-  "$id": "https://example.com/address.schema.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "$id": "http://go.atlassian.com/adf-json-schema",
+  "$schema": "https://json-schema.org/draft-04/schema",
+  "description": "Schema for Atlassian Document Format.",
   "$ref" : "#/definitions/top_node",
   "definitions":{
      "top_node":{
@@ -407,9 +407,9 @@ def test_simple_definitions():
 
 def test_allOf():
     input = '''{
-  "$id": "https://example.com/address.schema.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "$id": "http://go.atlassian.com/adf-json-schema",
+  "$schema": "https://json-schema.org/draft-04/schema",
+  "description": "Schema for Atlassian Document Format.",
   "$ref" : "#/definitions/top_node",
   "definitions":{
      "top_node":{
@@ -426,9 +426,9 @@ def test_allOf():
 
 def test_anyOf():
     input = '''{
-  "$id": "https://example.com/address.schema.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "$id": "http://go.atlassian.com/adf-json-schema",
+  "$schema": "https://json-schema.org/draft-04/schema",
+  "description": "Schema for Atlassian Document Format.",
   "$ref" : "#/definitions/top_node",
   "definitions":{
      "top_node":{
@@ -443,9 +443,9 @@ def test_anyOf():
 
 def test_anyOf_two_objects():
     input = '''{
-  "$id": "https://example.com/address.schema.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "$id": "http://go.atlassian.com/adf-json-schema",
+  "$schema": "https://json-schema.org/draft-04/schema",
+  "description": "Schema for Atlassian Document Format.",
   "$ref" : "#/definitions/top_node",
   "definitions":{
     "inlineCard_node": {
@@ -501,9 +501,9 @@ def test_anyOf_two_objects():
 
 def test_oneOf():
     input = '''{
-  "$id": "https://example.com/address.schema.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "$id": "http://go.atlassian.com/adf-json-schema",
+  "$schema": "https://json-schema.org/draft-04/schema",
+  "description": "Schema for Atlassian Document Format.",
   "$ref" : "#/definitions/top_node",
   "definitions":{
      "top_node":{
@@ -519,9 +519,9 @@ def test_oneOf():
 
 def test_ref():
     input = '''{
-  "$id": "https://example.com/address.schema.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "$id": "http://go.atlassian.com/adf-json-schema",
+  "$schema": "https://json-schema.org/draft-04/schema",
+  "description": "Schema for Atlassian Document Format.",
   "$ref" : "#/definitions/top_node",
   "definitions":{
      "top_node":{
