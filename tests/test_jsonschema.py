@@ -217,8 +217,7 @@ def test_object_with_enum():
     dic = json.loads(input)
     res = sc.parse_json_schema(dic)
     assert res.defn == {"#/definitions/breakout_mark":sc.JNamedObject('breakout',
-                                       {'attrs': (sc.JNamedObject(None,
-                                                                   {'mode': (sc.Enum(['wide', 'full-width']), True)}, False), True)},
+                                       {'attrs': (sc.JObject({'mode': (sc.Enum(['wide', 'full-width']), True)}, False), True)},
                                        False)}
 
 def test_object_with_enum():
@@ -261,8 +260,7 @@ def test_object_with_enum():
     dic = json.loads(input)
     res = sc.parse_json_schema(dic)
     assert res.defn == {'#/definitions/textColor_mark': sc.JNamedObject('textColor',
-                                                                        {'attrs': (sc.JNamedObject(None,
-                                                                                                    {'color': (sc.JString({'pattern': '^#[0-9a-fA-F]{6}$'}), True)}, False), True)}, False)}
+                                                                        {'attrs': (sc.JObject({'color': (sc.JString({'pattern': '^#[0-9a-fA-F]{6}$'}), True)}, False), True)}, False)}
 
 
 
@@ -337,8 +335,7 @@ def test_top_level_object_with_array2():
     res = sc.parse_json_schema(dic)
     assert res.defn == sc.JNamedObject('codeBlock',
        {'content': (sc.JArray({'items':sc.AllOf([sc.Ref("#/definitions/text_node"),
-       sc.JNamedObject(None,
-       {'marks':(sc.JArray({'maxItems':0}),False)}, True)
+       sc.JObject({'marks':(sc.JArray({'maxItems':0}),False)}, True)
                                                   ])}),False)}, False)
 
 
@@ -499,8 +496,8 @@ def test_anyOf_two_objects():
     res = sc.parse_json_schema(dic)
     assert res.defn == {'#/definitions/inlineCard_node':
                             JNamedObject('inlineCard',
-                            {'attrs': (AnyOf([JNamedObject(None,  {'url': (JString(constraints={}), True)}, additionalProperties=False),
-                            JNamedObject(None, {'data': (None, True)}, False)]), True)}, False)}
+                            {'attrs': (AnyOf([JObject({'url': (JString(constraints={}), True)}, additionalProperties=False),
+                            JObject({'data': (None, True)}, False)]), True)}, False)}
 
 def test_oneOf():
     input = '''{

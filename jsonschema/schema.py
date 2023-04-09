@@ -132,8 +132,10 @@ def parse_properties(schema_dict:dict, required, addProp):
             continue
         res[key] = (parse_schema(val, []), key in required)
 
-    return JNamedObject(name, res, addProp)
-
+    if name:
+        return JNamedObject(name, res, addProp)
+    else:
+        return JObject(res, addProp)
 
 def parse_object(schema_dict:dict, ignore_tags=[]):
     #accept_keys = ['properties','required']
