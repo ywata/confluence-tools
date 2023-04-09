@@ -1,10 +1,6 @@
 import logging
-
-import requests
-import json
 from dataclasses import dataclass
 
-import pprint as pp
 
 
 @dataclass()
@@ -44,10 +40,10 @@ class JNull():
 
 @dataclass()
 class JArray():
-    constraints : list
+    constraints : dict
 @dataclass()
 class JString():
-    constraints : list
+    constraints : dict
 @dataclass()
 class AllOf():
     constraints : list # of Restrictions
@@ -160,7 +156,7 @@ def parse_object(schema_dict:dict, ignore_tags=[]):
                 del new_dict['type']
                 return JObject(new_dict, False)
             else:
-                res = parse_schema(new_dict)
+                res = parse_schema(new_dict,[])
 
 
 def parse_predicate(schema_lst: dict, cnstr):
@@ -188,7 +184,7 @@ def parse_schema(schema_dict: dict, ignore_tags):
         elif schema_dict['type'] == 'object':
             res = parse_object(schema_dict, ignore_tags)
         else:
-            return JObject([], None)
+            return JObject({}, False)
     elif 'allOf' in schema_dict:
         res = parse_predicate(schema_dict['allOf'], AllOf)
     elif 'anyOf' in schema_dict:
