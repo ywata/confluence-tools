@@ -1,6 +1,6 @@
 import logging
 
-from jsonschema.schema import JObject, Schema, AnyOf, AllOf, JArray, Enum, JString, Ref
+from jsonschema.schema import JObject, JsonSchema, AnyOf, AllOf, JArray, Enum, JString, Ref
 
 
 def match_keys(jobject : JObject, target):
