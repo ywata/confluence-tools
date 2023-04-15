@@ -320,8 +320,6 @@ def normalize(val: dict, schema:JsonSchema) -> dict:
             return res
         case OneOf(ls):
             return OneOf(list(map(lambda x: normalize(x, schema), ls)))
-        case (OneOf(ls),addProp):
-            return (OneOf(list(map(lambda x: normalize(x, schema), ls))), addProp)
         case Ref(ref):
             r = schema.defn[ref]
             return r
