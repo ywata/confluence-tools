@@ -483,9 +483,9 @@ def test_ref_deep_in_array():
     res = sc.parse_json_schema(dic)
     assert res.defn == {'#/definitions/taskList_node': JNamedObject('taskList', {'content': (JArray({
         'items': [Ref(ref='#/definitions/taskItem_node'),
-                  AnyOf(constraints=[Ref('#/definitions/taskItem_node'), Ref('#/definitions/taskList_node')])],
+                  AnyOf(cnst=[Ref('#/definitions/taskItem_node'), Ref('#/definitions/taskList_node')])],
         'minItems': 1}), True), 'attrs': (
-    JObject({'localId': (JString(constraints={}), True)}, False), True)}, False)}
+    JObject({'localId': (JString({}), True)}, False), True)}, False)}
 
 
 
@@ -600,8 +600,8 @@ def test_anyOf_two_objects():
     res = sc.parse_json_schema(dic)
     assert res.defn == {'#/definitions/inlineCard_node':
                             JNamedObject('inlineCard',
-                                         {'attrs': (AnyOf([JObject({'url': (JString(constraints={}), True)},
-                                                                   additionalProperties=False),
+                                         {'attrs': (AnyOf([JObject({'url': (JString({}), True)},
+                                                                   False),
                                                            JObject({'data': (None, True)}, False)]), True)}, False)}
 
 
@@ -639,3 +639,13 @@ def test_ref():
     dic = json.loads(input)
     res = sc.parse_json_schema(dic)
     assert res.defn == {"#/definitions/top_node": sc.Ref("#/definitions/nothing")}
+
+
+def test_noemalize():
+    m = JNamedObject('taskList', {'content': AllOf([])}, True)
+
+    res = normalize(m, JsonSchema("a", None, None))
+    assert res == JNamedObject('taskList', {'content': (JArray({'minLength':0, 'maxLength':5}), True), 'attrs': (JObject({}, False), True)}, False)
+
+def test_replace_ref():
+    pass

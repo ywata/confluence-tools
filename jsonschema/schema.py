@@ -22,59 +22,59 @@ class Condition():
 @dataclass()
 class JNamedObject():
     name: str
-    attributes: dict  # of (name, restriction)
-    additionalProperties: bool
+    attr: dict  # of (name, restriction)
+    addp: bool
 
 
 @dataclass()
 class JObject():
-    attributes: dict  # of (name, restriction)
-    additionalProperties: bool
+    attr: dict  # of (name, restriction)
+    addp: bool
 
 
 @dataclass()
 class JNumber():
-    constraints: dict  # of (name, restriction)
+    cnst: dict  # of (name, restriction)
 
 
 @dataclass()
 class JInteger():
-    constraints: dict  # of (name, restriction)
+    cnst: dict  # of (name, restriction)
 
 
 @dataclass()
 class JBoolean():
-    constraints: dict  # of (name, restriction)
+    cnst: dict  # of (name, restriction)
 
 
 @dataclass()
 class JNull():
-    constraints: dict  # This should always be []
+    cnst: dict  # This should always be []
 
 
 @dataclass()
 class JArray():
-    constraints: dict
+    cnst: dict
 
 
 @dataclass()
 class JString():
-    constraints: dict
+    cnst: dict
 
 
 @dataclass()
 class AllOf():
-    constraints: list  # of Restrictions
+    cnst: list  # of Restrictions
 
 
 @dataclass()
 class AnyOf():
-    constraints: list  # of Restrictions
+    cnst: list  # of Restrictions
 
 
 @dataclass()
 class OneOf():
-    constraints: list  # of Restrictions
+    cnst: list  # of Restrictions
 
 
 @dataclass()
@@ -269,50 +269,67 @@ def parse_json_schema(json_schema_dict):
         res = parse_schema(json_schema_dict, ignore_tags)
         jschema.defn = res
     return jschema
+def merge_all_of_properties(props1, props2):
+    res = {}
+    for key in props1.keys() | props2.keys():
+        if key in props1 and key in props2:
+            v1 = props1[key]
+            v2 = props2[key]
+            match v1, v2:
+                case (JArray(prop1), ap1), (JArray(prop2), ap2):
+                    return JArray(prop1 | prop2, ap1)
+                case _, _:
+                    assert False, "merge_all_op_properties()"
+    return res
+
+
+def merge_constraints(schema:dict) -> dict:
+    match schema:
+        case [JNamedObject(name, props, addProp),JObject(props2, addProp2)]:
+            return JNamedObject(name, merge_all_of_properties(props, props2), addProp)
+    return schema
 
 def map_over_dict(d: dict, f) -> dict:
     res = {}
     for (key, val) in d.items():
         res[key] = f(val)
     return res
-def replace_ref(val: dict, schema:JsonSchema) -> dict:
+def normalize(val: dict, schema:JsonSchema) -> dict:
     match val:
+        case (obj, addProp):
+            if type(addProp) == bool:
+                return (normalize(obj, schema), addProp)
+            else:
+                return (normalize(obj, schema), normalize(addProp, schema))
         case JObject(props, addProp):
-            res = replace_ref(props, schema)
+            res = normalize(props, schema)
             return JObject(res, addProp)
         case JNamedObject(name, props, addProp):
-            res = replace_ref(props, schema)
+            res = normalize(props, schema)
             return JNamedObject(name, res, addProp)
-        case JArray(props):
-            res = replace_ref(props, schema)
-            return JArray(res)
-        case JString(props):
-            return val
-        case JNumber(props):
-            return val
-        case JInteger(props):
-            return val
-        case JBoolean(props):
-            return val
-        case JNull(props):
-            return val
-        case Enum(props):
+        case JArray(constr):
+            res1 = normalize(constr, schema)
+            res2 = merge_constraints(res1)
+            return JArray(res2)
+        case JString(props)|JNumber(props)|JInteger(props)|JBoolean(props)|JNull(props)|Enum(props):
             return val
         case AnyOf(ls):
-            return AnyOf(list(map(lambda x: replace_ref(x, schema), ls)))
+            return AnyOf(list(map(lambda x: normalize(x, schema), ls)))
         case AllOf(ls):
-            return AllOf(list(map(lambda x: replace_ref(x, schema), ls)))
+            res = AllOf(list(map(lambda x: normalize(x, schema), ls)))
+            return res
         case OneOf(ls):
-            return OneOf(list(map(lambda x: replace_ref(x, schema), ls)))
+            return OneOf(list(map(lambda x: normalize(x, schema), ls)))
+        case (OneOf(ls),addProp):
+            return (OneOf(list(map(lambda x: normalize(x, schema), ls))), addProp)
         case Ref(ref):
-            return schema.defn[ref]
+            r = schema.defn[ref]
+            return r
         case {}:
             for (key, v) in val.items():
-                val[key] = replace_ref(v, schema)
+                res = normalize(v, schema)
+                val[key] = res
             return val
-        case (JArray(props), addProp):
-            res = replace_ref(props, schema)
-            return (JArray(res), addProp)
         case any:
             return any
 
@@ -320,7 +337,7 @@ def replace_ref(val: dict, schema:JsonSchema) -> dict:
 def normalize_schema(schema: JsonSchema) -> JsonSchema:
     if schema.defn:
         for (key, val) in schema.defn.items():
-            schema.defn[key] = replace_ref(val, schema)
+            schema.defn[key] = normalize(val, schema)
         return schema
     else:
         return schema
